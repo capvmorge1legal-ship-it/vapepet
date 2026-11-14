@@ -82,6 +82,7 @@ partial class VapePet
                 if (k == "ms_token") { msToken = Unseal(val.Trim()); if (val.Length > 0 && !val.StartsWith("dpapi:")) keysPlain = true; }
                 if (k == "panel") panelShow = val != "0";
                 if (k == "autoupd") autoUpdate = val != "0";
+                if (k == "aiact") aiActions = val != "0";
                 if (k == "hidefs") hideInFullscreen = val != "0";
                 if (k == "monitor") petMonitor = val;
                 if (k == "corner") petLeft = val == "left";
@@ -116,7 +117,7 @@ partial class VapePet
                 "weather=" + (wxShow ? "1" : "0"), "roam=" + (interfacePlay ? "1" : "0"), "party=" + partyDay, "fright=" + frightLevel, "dl=" + (dlWatch ? "1" : "0"), "notes=" + (dodgeNotes ? "1" : "0"), "money=" + money, "ai_format=" + aiFormat, "ai_url=" + aiUrl, "ai_model=" + aiModel, "ai_key=" + Seal(aiKey), "ai_voice=" + (aiVoice ? "1" : "0"), "voice_clone=" + (cloneVoice ? "1" : "0"), "voice_dir=" + voiceDir
             });
             sl.Add("panel=" + (panelShow ? "1" : "0")); sl.Add("clip=" + (clipOn ? "1" : "0")); sl.Add("smartclip=" + (smartClip ? "1" : "0")); sl.Add("bigseen=" + (bigSeen ? "1" : "0")); sl.Add("ms_token=" + Seal(msToken)); sl.Add("net=" + (netWatch ? "1" : "0")); sl.Add("netspeed=" + (netShowSpeed ? "1" : "0"));
-            sl.Add("autoupd=" + (autoUpdate ? "1" : "0")); sl.Add("hidefs=" + (hideInFullscreen ? "1" : "0")); sl.Add("monitor=" + petMonitor); sl.Add("corner=" + (petLeft ? "left" : "right")); sl.Add("ver=" + AppVersion);
+            sl.Add("autoupd=" + (autoUpdate ? "1" : "0")); sl.Add("aiact=" + (aiActions ? "1" : "0")); sl.Add("hidefs=" + (hideInFullscreen ? "1" : "0")); sl.Add("monitor=" + petMonitor); sl.Add("corner=" + (petLeft ? "left" : "right")); sl.Add("ver=" + AppVersion);
             sl.Add("links=1");
             foreach (string[] l in links) sl.Add("link=" + l[0].Replace("|", "/") + "|" + l[1]);
             File.WriteAllLines(SettingsPath, sl.ToArray(), Encoding.UTF8);

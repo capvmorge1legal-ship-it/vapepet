@@ -268,7 +268,10 @@ partial class VapePet
         Put(ai, "Настройки ИИ...", null, Color.Empty, "Подключение ИИ…");
         PutToggle(ai, "Озвучивать ответы");
         PutToggle(ai, "Голос: мой (нейросеть)", "Мой голос (нейросеть)");
-        Put(ai, "Очистить память разговора", null, Color.Empty);
+        Put(ai, "Очистить память разговора", null, Color.Empty, "Очистить текущий разговор");
+        ToolStripMenuItem act = new ToolStripMenuItem("Котик выполняет просьбы: таймеры, поиск, открыть, запомнить", null, delegate (object o, EventArgs e) { aiActions = !aiActions; ((ToolStripMenuItem)o).Checked = aiActions; SaveSettings(); });
+        act.Checked = aiActions; MakeToggle(act); ai.DropDownItems.Add(act);
+        ai.DropDownItems.Add(new ToolStripMenuItem("Память котика: что он знает о вас…", null, delegate { EditMemory(); }));
         sets.DropDownItems.Add(ai);
         ToolStripMenuItem pnl = new ToolStripMenuItem("Панель: интернет, курс, таймеры", null, delegate (object o, EventArgs e) { panelShow = !panelShow; ((ToolStripMenuItem)o).Checked = panelShow; SaveSettings(); });
         pnl.Checked = panelShow; MakeToggle(pnl); sets.DropDownItems.Add(pnl);

@@ -213,7 +213,7 @@ partial class VapePet
         }
         try
         {
-            p.SetMode(0); p.fakeNow = DateTime.Today.AddHours(23).AddMinutes(30);
+            p.SetMode(0); p.fakeNow = DateTime.Today.AddHours(23).AddMinutes(30); p.forceNight = 1;
             for (int i = 0; i < 90; i++) p.Step();
             p.RenderFrame(); p.hudBuf.Save(Path.Combine(dir, "night.png"));
         }

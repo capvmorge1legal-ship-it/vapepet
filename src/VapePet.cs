@@ -351,7 +351,7 @@ public partial class VapePet : Form
             catch (Exception ex) { GuardLog("step", ex); }
             bool menuUp = MenuOpen;
             menuThrottleT = menuUp ? menuThrottleT + 1 : 0;
-            try { UpdateTick(); } catch { }
+            try { UpdateTick(); AgentTick(); } catch { }
             if (prof) ProfAdd(0, pf0);
             try
             {

@@ -255,19 +255,27 @@ partial class VapePet
         ThreadPool.QueueUserWorkItem(delegate
         {
             string ans = null, err = null;
-            // нужен ли интернет? — ИИ сам решает и, если надо, котик ищет в DuckDuckGo
-            try
+            if (aiActions)
             {
-                string web = WebAugment(q, prevQ);
-                if (web != null)
-                {
-                    hist[hist.Count - 1] = new string[] { "user", q + "\n\n[Котик нашёл в интернете, сегодня " + DateTime.Now.ToString("d MMMM yyyy", new CultureInfo("ru-RU")) + "]\n" + web +
-                        "\n[Ответь по-русски, опираясь на найденное; в конце коротко укажи сайт-источник. Если в найденном нет ответа — честно скажи.]" };
-                }
+                // котик сам решает, что сделать: поискать, поставить таймер, открыть, запомнить…
+                try { ans = AgentRun(hist, q, card); } catch (Exception ex) { err = ex.Message; }
             }
-            catch { }
-            try { ans = CallAI(hist, fmt, url, model, key); }
-            catch (Exception ex) { err = ex.Message; }
+            else
+            {
+            // нужен ли интернет? — ИИ сам решает и, если надо, котик ищет в DuckDuckGo
+                try
+                {
+                    string web = WebAugment(q, prevQ);
+                    if (web != null)
+                    {
+                        hist[hist.Count - 1] = new string[] { "user", q + "\n\n[Котик нашёл в интернете, сегодня " + DateTime.Now.ToString("d MMMM yyyy", new CultureInfo("ru-RU")) + "]\n" + web +
+                            "\n[Ответь по-русски, опираясь на найденное; в конце коротко укажи сайт-источник. Если в найденном нет ответа — честно скажи.]" };
+                    }
+                }
+                catch { }
+                try { ans = CallAI(hist, fmt, url, model, key); }
+                catch (Exception ex) { err = ex.Message; }
+            }
             try
             {
                 BeginInvoke((MethodInvoker)delegate
