@@ -17,7 +17,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <SatelliteResourceLanguages>ru</SatelliteResourceLanguages>
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
-    <NoWarn>$(NoWarn);CS0108;CS0114;CS0169;CS0414;CS0649;CS0219;CS0168;SYSLIB0014;CA1416;WFO1000;WFAC010</NoWarn>
+    <NoWarn>$(NoWarn);CS0108;CS0114;CS0169;CS0414;CS0649;CS0219;CS0168;SYSLIB0014;CS0618;CA1416;WFO1000;WFAC010</NoWarn>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
@@ -28,5 +28,6 @@
   <ItemGroup>
     <Compile Include="src\**\*.cs" />
     <PackageReference Include="System.Speech" Version="10.0.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
   </ItemGroup>
 </Project>

@@ -12,6 +12,21 @@ using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Graphics = Gdi.Graphics;
+using Bitmap = Gdi.Bitmap;
+using Brush = Gdi.Brush;
+using SolidBrush = Gdi.SolidBrush;
+using LinearGradientBrush = Gdi.LinearGradientBrush;
+using PathGradientBrush = Gdi.PathGradientBrush;
+using Brushes = Gdi.Brushes;
+using Pen = Gdi.Pen;
+using Pens = Gdi.Pens;
+using GraphicsPath = Gdi.GraphicsPath;
+using Font = Gdi.Font;
+using StringFormat = Gdi.StringFormat;
+using GraphicsState = Gdi.GraphicsState;
+using ImageAttributes = Gdi.ImageAttributes;
+using ColorBlend = Gdi.ColorBlend;
 
 public partial class VapePet : Form
 {
