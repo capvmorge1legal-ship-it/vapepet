@@ -19,7 +19,11 @@
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
     <NoWarn>$(NoWarn);CS0108;CS0114;CS0169;CS0414;CS0649;CS0219;CS0168;SYSLIB0014;CS0618;CA1416;WFO1000;WFAC010</NoWarn>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
+    <!-- всё нужное внутри одного VapePet.exe: на компьютере ничего ставить не надо -->
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <TieredPGO>true</TieredPGO>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>embedded</DebugType>

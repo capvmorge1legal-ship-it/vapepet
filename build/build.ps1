@@ -1,17 +1,13 @@
-﻿# Сборка VapePet.exe из src\*.cs (компилятор .NET Framework 4, есть в каждой Windows 10/11)
+﻿# Сборка VapePet.exe (.NET 10, один файл, ничего ставить на компьютер не нужно)
 # Запуск: powershell -ExecutionPolicy Bypass -File build\build.ps1
+# Нужен .NET SDK 10: https://dotnet.microsoft.com/download (или переменная DOTNET_ROOT с распакованным SDK)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-if (-not (Test-Path $csc)) { $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe' }
-if (-not (Test-Path $csc)) { 'Не найден csc.exe (.NET Framework 4)'; exit 1 }
+$dotnet = 'dotnet'
+if ($env:DOTNET_ROOT -and (Test-Path (Join-Path $env:DOTNET_ROOT 'dotnet.exe'))) { $dotnet = Join-Path $env:DOTNET_ROOT 'dotnet.exe' }
 $dist = Join-Path $root 'dist'
-New-Item -ItemType Directory -Force -Path $dist | Out-Null
-$out = Join-Path $dist 'VapePet.exe'
-$args = @('/nologo', '/target:winexe', '/optimize+', '/codepage:65001', '/nowarn:0108,0114,0169,0414,0649,0219,0168',
-          "/win32icon:$root\build\vapepet.ico", '/r:System.Windows.Forms.dll', '/r:System.Drawing.dll', '/r:System.Security.dll',
-          "/out:$out", "$root\src\*.cs")
-$log = & $csc @args 2>&1
-if ($LASTEXITCODE -ne 0) { 'ОШИБКА сборки:'; $log; exit 1 }
+& $dotnet publish (Join-Path $root 'VapePet.csproj') -c Release -o $dist --nologo -v q
+if ($LASTEXITCODE -ne 0) { 'ОШИБКА сборки'; exit 1 }
+Get-ChildItem $dist -Exclude 'VapePet.exe' | Remove-Item -Recurse -Force
 Copy-Item "$root\installer\*" $dist -Force
-"Готово: $out"
+"Готово: $dist\VapePet.exe"
