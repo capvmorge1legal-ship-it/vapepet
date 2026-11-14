@@ -148,6 +148,7 @@ partial class VapePet
         if (links.Count > 0) { b.Append("\nСохранённые ссылки владельца: "); for (int i = 0; i < links.Count && i < 12; i++) b.Append(i > 0 ? ", " : "").Append(links[i][0]); b.Append("."); }
         b.Append("\nПравила: действуй, только когда владелец об этом просит или это нужно для ответа. Никогда не выдумывай результат действия. ");
         b.Append("Если просьб несколько — выполни все. Если владелец сообщает о себе что-то важное надолго — запомни это (remember). ");
+        b.Append("Никогда не пиши, что что-то сделал (поставил, открыл, запомнил), если не выполнил для этого действие. Результатам поиска доверяй: они свежее твоих знаний. ");
         b.Append("После действий ответь владельцу коротко, что сделано. Если искал в интернете — в конце назови сайт-источник. Чего не умеешь — честно скажи.");
         if (memory.Count > 0)
         {
@@ -258,6 +259,29 @@ partial class VapePet
         }
         return AgentRunText(hist, q, withCard);
     }
+    // ИИ иногда пишет «поставил напоминание», не вызвав действие. Проверяем слова делом.
+    static readonly string[][] Claims = {
+        new[] { @"напомин|напомн", @"постав|создал|установ|добавил|напомню|запис", "remind,timer" },
+        new[] { @"таймер", @"постав|засек|засёк|установ|запус|завёл|завел", "timer,remind" },
+        new[] { @"запомнил|запомню|записал себе|буду помнить", "", "remember" },
+        new[] { @"открыл|открываю|запустил сценк", "", "open,scene,stock" },
+        new[] { @"скопировал|положил в буфер", "", "clipboard_set" },
+        new[] { @"заблокировал|выключ[уи]", "", "lock,shutdown,shutdown_cancel" },
+    };
+    static string UnbackedClaim(string answer, HashSet<string> called)
+    {
+        string a = answer.ToLowerInvariant();
+        if (Regex.IsMatch(a, @"не (могу|умею|получилось|удалось|смог)")) return null;
+        foreach (string[] c in Claims)
+        {
+            if (!Regex.IsMatch(a, c[0]) || (c[1].Length > 0 && !Regex.IsMatch(a, c[1]))) continue;
+            bool ok = false; foreach (string t in c[2].Split(',')) if (called.Contains(t)) ok = true;
+            if (!ok) return c[2].Split(',')[0];
+        }
+        return null;
+    }
+    const string ClaimFix = "[Сообщение от котика, не от владельца] В ответе сказано, что действие выполнено, но действие «{0}» не вызывалось — на самом деле ничего не сделано. Если владелец об этом просил — выполни действие сейчас. Если не просил — ответь заново, не утверждая, что это сделано.";
+
     class AgentStop : Exception { public AgentStop(string m) : base(m) { } }
 
     void ActionNote(string name, JsonElement e, string q, bool withCard)
@@ -274,8 +298,8 @@ partial class VapePet
         List<string> msgs = new List<string>();
         msgs.Add("{\"role\":\"system\",\"content\":\"" + JEsc(sys) + "\"}");
         foreach (string[] h in hist) msgs.Add("{\"role\":\"" + h[0] + "\",\"content\":\"" + JEsc(h[1]) + "\"}");
-        bool acted = false; string lastResults = "";
-        for (int step = 0; step < 6; step++)
+        bool acted = false, fixedOnce = false; string lastResults = ""; HashSet<string> called = new HashSet<string>();
+        for (int step = 0; step < 7; step++)
         {
             string body = "{\"model\":\"" + JEsc(model) + "\"," + ModelOptions(url, model, 900) + "\"messages\":[" + string.Join(",", msgs.ToArray()) + "],\"tools\":" + tools + ",\"tool_choice\":\"auto\"}";
             string resp;
@@ -293,6 +317,14 @@ partial class VapePet
                 if (!has)
                 {
                     if (content.Trim().Length == 0) { if (lastResults.Length > 0) return CleanText(lastResults); throw new Exception("ИИ ничего не ответил"); }
+                    string miss = fixedOnce ? null : UnbackedClaim(content, called);
+                    if (miss != null)
+                    {
+                        fixedOnce = true; DevLog("  [проверка]", "сказано, но не сделано: " + miss, null);
+                        msgs.Add("{\"role\":\"assistant\",\"content\":\"" + JEsc(content) + "\"}");
+                        msgs.Add("{\"role\":\"user\",\"content\":\"" + JEsc(string.Format(ClaimFix, miss)) + "\"}");
+                        continue;
+                    }
                     return CleanText(content);
                 }
                 msgs.Add("{\"role\":\"assistant\",\"content\":\"" + JEsc(content) + "\",\"tool_calls\":" + calls.GetRawText() + "}");
@@ -308,7 +340,7 @@ partial class VapePet
                     }
                     catch (JsonException) { res = "ошибка: непонятные параметры"; }
                     catch (Exception ex) { res = "ошибка: " + ex.Message; }
-                    acted = true;
+                    acted = true; if (!res.StartsWith("ошибка")) called.Add(name);
                     results.Append(res).Append("\n");
                     msgs.Add("{\"role\":\"tool\",\"tool_call_id\":\"" + JEsc(id) + "\",\"content\":\"" + JEsc(res) + "\"}");
                 }
@@ -326,8 +358,8 @@ partial class VapePet
         string sys = null;
         Invoke((Action)delegate { sys = AgentSystem(false); });
         List<string[]> msgs = new List<string[]>(hist);
-        string lastResults = "";
-        for (int step = 0; step < 5; step++)
+        string lastResults = ""; bool fixedOnce = false; HashSet<string> called = new HashSet<string>();
+        for (int step = 0; step < 6; step++)
         {
             string raw = CallAIMessages(sys, msgs, 900);
             DevLog("  [шаг " + step + "]", raw, null);
@@ -336,6 +368,13 @@ partial class VapePet
             if (acts.Count == 0)
             {
                 if (text.Length == 0 && lastResults.Length > 0) return CleanText(lastResults);   // ИИ промолчал — отдаём результаты как есть
+                string miss = fixedOnce || text.Length == 0 ? null : UnbackedClaim(text, called);
+                if (miss != null)
+                {
+                    fixedOnce = true; DevLog("  [проверка]", "сказано, но не сделано: " + miss, null);
+                    msgs.Add(new string[] { "assistant", raw }); msgs.Add(new string[] { "user", string.Format(ClaimFix, miss) });
+                    continue;
+                }
                 return CleanText(text.Length > 0 ? text : raw);
             }
             StringBuilder results = new StringBuilder();
@@ -352,6 +391,7 @@ partial class VapePet
                             foreach (JsonProperty pr in e.EnumerateObject()) { if (IsTool(pr.Name)) { name = pr.Name; if (pr.Value.ValueKind == JsonValueKind.Object) e = pr.Value; } break; }
                         ActionNote(name, e, q, withCard);
                         res = DoAction(name, e);
+                        if (!res.StartsWith("ошибка")) called.Add(name);
                     }
                 }
                 catch (JsonException) { res = "ошибка: непонятный JSON в действии"; }
