@@ -488,7 +488,7 @@ partial class VapePet
                 else { tu.Text = "https://api.openai.com/v1/chat/completions"; tm.Text = "gpt-4o-mini"; }
             };
             LinkLabel getKey = new LinkLabel(); getKey.Text = "Получить ключ"; getKey.SetBounds(12, 210, 200, 20);
-            getKey.LinkClicked += delegate { try { System.Diagnostics.Process.Start(cb.SelectedIndex == 3 ? "https://console.groq.com/keys" : cb.SelectedIndex == 0 ? "https://platform.claude.com" : "https://aistudio.google.com/apikey"); } catch { } };
+            getKey.LinkClicked += delegate { try { ShellOpen(cb.SelectedIndex == 3 ? "https://console.groq.com/keys" : cb.SelectedIndex == 0 ? "https://platform.claude.com" : "https://aistudio.google.com/apikey"); } catch { } };
             Button ok = new Button(); ok.Text = "Сохранить"; ok.DialogResult = DialogResult.OK; ok.SetBounds(262, 206, 90, 28);
             Button cn = new Button(); cn.Text = "Отмена"; cn.DialogResult = DialogResult.Cancel; cn.SetBounds(358, 206, 88, 28);
             f.Controls.AddRange(new Control[] { l1, cb, l2, tu, l3, tm, l4, tk, hint, getKey, ok, cn });

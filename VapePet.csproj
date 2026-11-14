@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>VapePet</AssemblyName>
+    <RootNamespace>VapePetApp</RootNamespace>
+    <ApplicationIcon>build\vapepet.ico</ApplicationIcon>
+    <ApplicationManifest>build\app.manifest</ApplicationManifest>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>4.0.0</Version>
+    <Product>VapePet</Product>
+    <Company>VapePet</Company>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SatelliteResourceLanguages>ru</SatelliteResourceLanguages>
+    <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+    <NoWarn>$(NoWarn);CS0108;CS0114;CS0169;CS0414;CS0649;CS0219;CS0168;SYSLIB0014;CA1416;WFO1000;WFAC010</NoWarn>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" />
+    <PackageReference Include="System.Speech" Version="10.0.0" />
+  </ItemGroup>
+</Project>

@@ -64,6 +64,14 @@ partial class VapePet
         else { ShowWindow(Handle, 4); hudDirty = true; RenderFrame(); }
     }
 
+    // открыть ссылку, файл или папку так, как это делает Проводник
+    public static void ShellOpen(string target)
+    {
+        System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(target);
+        psi.UseShellExecute = true;
+        System.Diagnostics.Process.Start(psi);
+    }
+
     // ================= обновления с GitHub =================
     public const string AppVersion = "3.1.0";
     const string UpdateRepo = "capvmorge1legal-ship-it/vapepet";

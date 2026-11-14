@@ -537,6 +537,7 @@ partial class VapePet
             float dpi = 96;
             using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) dpi = g.DpiX;
             Application.EnableVisualStyles();
+            try { Application.SetDefaultFont(new Font("Microsoft Sans Serif", 8.25f)); } catch { }   // старые окна свёрстаны под этот шрифт
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += delegate (object o, ThreadExceptionEventArgs e) { CrashLog(e.Exception); };
             AppDomain.CurrentDomain.UnhandledException += delegate (object o, UnhandledExceptionEventArgs e) { CrashLog(e.ExceptionObject as Exception); };

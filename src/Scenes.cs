@@ -580,7 +580,7 @@ partial class VapePet
 
     void OpenUrl(string url)
     {
-        try { System.Diagnostics.Process.Start(url); }
+        try { ShellOpen(url); }
         catch (Exception ex) { Say("Не открылось: " + ex.Message, me.X, CatTop(me) - U(1), 'R'); }
     }
 

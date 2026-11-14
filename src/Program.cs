@@ -17,5 +17,9 @@ using System.Windows.Forms;
 static class VapePetProgram
 {
     [STAThread]
-    static void Main() { VapePet.Start(); }
+    static void Main()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);   // кодировка 1251 для курсов ЦБ
+        VapePet.Start();
+    }
 }
