@@ -199,13 +199,18 @@ partial class VapePet
         string sys = null;
         Invoke((Action)delegate { if (!agentReady) { agentReady = true; LoadMemory(); LoadAlarms(); } sys = AgentSystem(); });
         List<string[]> msgs = new List<string[]>(hist);
-        string said = "";
+        string said = "", lastResults = "";
         for (int step = 0; step < 4; step++)
         {
             string raw = CallAIMessages(sys, msgs, 900);
+            DevLog("  [шаг " + step + "]", raw, null);
             MatchCollection acts = ActionLine.Matches(raw);
             string text = ActionLine.Replace(raw, "").Replace("```json", "").Replace("```", "").Trim();
-            if (acts.Count == 0) return CleanText(text.Length > 0 ? text : raw);
+            if (acts.Count == 0)
+            {
+                if (text.Length == 0 && lastResults.Length > 0) return CleanText(lastResults);   // ИИ промолчал — отдаём результаты как есть
+                return CleanText(text.Length > 0 ? text : raw);
+            }
             if (text.Length > 0) said = text;
             bool needAnswer = false; StringBuilder results = new StringBuilder();
             foreach (Match m in acts)
@@ -227,6 +232,8 @@ partial class VapePet
                 if (InfoActions.Contains(name) || res.StartsWith("ошибка")) needAnswer = true;
                 results.Append("[").Append(name).Append("] ").Append(res).Append("\n");
             }
+            lastResults = results.ToString();
+            DevLog("  [результаты]", lastResults, null);
             if (!needAnswer && said.Length > 0) return CleanText(said);
             msgs.Add(new string[] { "assistant", raw });
             msgs.Add(new string[] { "user", "[Результаты действий — это сообщение прислал котик, а не владелец]\n" + results + "\nТеперь ответь владельцу коротко, по-русски, опираясь на эти результаты. Если искал в интернете — в конце укажи сайт-источник." });
