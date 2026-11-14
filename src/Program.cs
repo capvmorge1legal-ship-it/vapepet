@@ -17,9 +17,10 @@ using System.Windows.Forms;
 static class VapePetProgram
 {
     [STAThread]
-    static void Main()
+    static void Main(string[] args)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);   // кодировка 1251 для курсов ЦБ
+        if (args.Length == 2 && args[0] == "--shots") { try { VapePet.Shots(args[1]); } catch (Exception ex) { System.IO.File.WriteAllText(System.IO.Path.Combine(args[1], "fail.txt"), ex.ToString()); } return; }
         VapePet.Start();
     }
 }

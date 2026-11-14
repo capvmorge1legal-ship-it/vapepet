@@ -184,6 +184,53 @@ partial class VapePet
         if (prof) ProfAdd(3, pf);
     }
 
+    // проверка рисунка без экрана: VapePet.exe --shots <папка> — рисует каждую сцену в PNG и выходит
+    public static void Shots(string dir)
+    {
+        Directory.CreateDirectory(dir);
+        try { SetProcessDPIAware(); } catch { }
+        float dpi; using (System.Drawing.Graphics g0 = System.Drawing.Graphics.FromHwnd(IntPtr.Zero)) dpi = g0.DpiX;
+        LifeFake = true;
+        VapePet p = new VapePet(dpi);
+        p.timer.Stop(); p.fakeIdleMs = 0; p.fakeNow = DateTime.Today.AddHours(14);
+        StringBuilder log = new StringBuilder();
+        int[] at = { 60, 260, 520, 900 };
+        for (int m = 0; m <= 6; m++)
+        {
+            try
+            {
+                p.SetMode(m); int k = 0;
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch(); int frames = 0;
+                for (int i = 1; i <= at[at.Length - 1]; i++)
+                {
+                    p.Step();
+                    if (i % 3 == 0) { sw.Start(); p.RenderFrame(); sw.Stop(); frames++; }
+                    if (k < at.Length && i == at[k]) { p.RenderFrame(); p.hudBuf.Save(Path.Combine(dir, "mode" + m + "_" + i + ".png")); k++; }
+                }
+                log.AppendLine("mode " + m + ": " + (sw.Elapsed.TotalMilliseconds / Math.Max(1, frames)).ToString("0.00") + " ms/frame");
+            }
+            catch (Exception ex) { log.AppendLine("mode " + m + " FAILED: " + ex); }
+        }
+        try
+        {
+            p.SetMode(0); p.fakeNow = DateTime.Today.AddHours(23).AddMinutes(30);
+            for (int i = 0; i < 90; i++) p.Step();
+            p.RenderFrame(); p.hudBuf.Save(Path.Combine(dir, "night.png"));
+        }
+        catch (Exception ex) { log.AppendLine("night FAILED: " + ex); }
+        try
+        {
+            Size bs = p.BigSize();
+            using (Bitmap b = new Bitmap(bs.Width, bs.Height))
+            {
+                using (Graphics g = Graphics.FromImage(b)) { g.Clear(Color.FromArgb(255, 60, 70, 90)); p.DrawBig(g); }
+                b.Save(Path.Combine(dir, "big.png"));
+            }
+        }
+        catch (Exception ex) { log.AppendLine("big FAILED: " + ex); }
+        File.WriteAllText(Path.Combine(dir, "log.txt"), log.ToString(), Encoding.UTF8);
+    }
+
     Bitmap hudCache; Rectangle hudRect; int hudAge; bool hudDirty = true, hudWasOn;
     RectangleF panelCardRect;
     public void HudChanged() { hudDirty = true; }

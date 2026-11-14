@@ -466,6 +466,12 @@ namespace Gdi
             }
         }
 
+        public void Save(string path)
+        {
+            using (SKImage img = surface.Snapshot()) using (SKData d = img.Encode(SKEncodedImageFormat.Png, 100))
+                System.IO.File.WriteAllBytes(path, d.ToArray());
+        }
+
         // есть ли в кадре хоть один заметный пиксель (защита от «пустого котика»)
         public unsafe bool IsBlank()
         {
