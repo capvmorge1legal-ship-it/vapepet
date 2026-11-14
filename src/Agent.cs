@@ -175,6 +175,7 @@ partial class VapePet
                 using (WebResponse rs = rq.GetResponse()) using (StreamReader sr = new StreamReader(rs.GetResponseStream(), Encoding.UTF8)) resp = sr.ReadToEnd();
                 string text = fmt == "anthropic" ? JValueAfter(resp, "\"content\"", "text") : JValueAfter(resp, "\"message\"", "content");
                 if (text == null) throw new Exception("непонятный ответ сервера");
+                if (text.Trim().Length == 0 && devMode) try { File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_answer.txt"), "RAW: " + resp + "\r\n", Encoding.UTF8); } catch { }
                 return text;
             }
             catch (WebException we)
