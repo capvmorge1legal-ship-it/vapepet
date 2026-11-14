@@ -99,68 +99,70 @@ partial class VapePet
         try { File.WriteAllText(AlarmsPath, now, Encoding.UTF8); } catch { }
     }
 
-    // ---------- что умеет котик (описание для ИИ) ----------
-    string AgentSystem()
+    // ---------- что умеет котик ----------
+    // имя | описание | параметры «имя:тип:описание» (с «!» — обязательный) | 1 = ИИ нужен результат
+    static readonly string[][] Tools = {
+        new[] { "timer", "Поставить таймер на N минут.", "minutes!:number:сколько минут;text:string:о чём таймер", "0" },
+        new[] { "remind", "Поставить напоминание на время.", "at!:string:время \"ЧЧ:ММ\" (сегодня, а если уже прошло — завтра) или \"ГГГГ-ММ-ДД ЧЧ:ММ\";text!:string:о чём напомнить", "0" },
+        new[] { "cancel_timers", "Отменить все таймеры и напоминания.", "", "0" },
+        new[] { "list_timers", "Показать активные таймеры и напоминания.", "", "1" },
+        new[] { "open", "Открыть сайт, файл, папку или сохранённую ссылку по названию.", "target!:string:адрес https://…, путь к файлу или папке, либо название сохранённой ссылки", "0" },
+        new[] { "web", "Поиск в интернете. Для фактов, новостей, цен, дат — всего, что могло измениться.", "query!:string:короткий поисковый запрос", "1" },
+        new[] { "find_file", "Найти файл или папку по части имени (Рабочий стол, Документы, Загрузки).", "name!:string:часть имени", "1" },
+        new[] { "stock", "Показать владельцу остатки товара в МойСклад.", "query!:string:название товара", "0" },
+        new[] { "disk", "Свободное место на дисках.", "", "1" },
+        new[] { "weather", "Погода сейчас в городе владельца.", "", "1" },
+        new[] { "rates", "Курсы валют ЦБ РФ.", "", "1" },
+        new[] { "scene", "Запустить сценку котика.", "name!:string:walk, shop, sofa, warehouse, party, raid или audit", "0" },
+        new[] { "clipboard_get", "Прочитать текст из буфера обмена.", "", "1" },
+        new[] { "clipboard_set", "Положить текст в буфер обмена.", "text!:string:текст", "0" },
+        new[] { "media", "Управление музыкой и громкостью.", "cmd!:string:play_pause, next, prev, volume_up, volume_down или mute", "0" },
+        new[] { "lock", "Заблокировать компьютер.", "", "0" },
+        new[] { "shutdown", "Выключить компьютер через N минут (котик спросит подтверждение у владельца).", "minutes!:number:через сколько минут", "0" },
+        new[] { "shutdown_cancel", "Отменить запланированное выключение.", "", "0" },
+        new[] { "remember", "Запомнить надолго факт о владельце: имя, привычки, предпочтения, важные дела.", "text!:string:факт одной фразой", "0" },
+        new[] { "forget", "Забыть факты, в которых встречается этот текст.", "text!:string:что забыть", "0" },
+    };
+    static bool IsTool(string name) { foreach (string[] t in Tools) if (t[0] == name) return true; return false; }
+    static bool IsInfoTool(string name) { foreach (string[] t in Tools) if (t[0] == name) return t[3] == "1"; return false; }
+
+    string AgentSystem(bool native)
     {
         CultureInfo ru = new CultureInfo("ru-RU");
         StringBuilder b = new StringBuilder(AiSystem);
         b.Append("\n\nСейчас ").Append(DateTime.Now.ToString("dddd, d MMMM yyyy, HH:mm", ru)).Append(". Город: ").Append(wxCity).Append(".");
-        b.Append("\n\nТЫ УМЕЕШЬ ВЫПОЛНЯТЬ ДЕЙСТВИЯ на компьютере владельца. Чтобы выполнить действие, напиши ОТДЕЛЬНОЙ строкой @@ и JSON, например:\n@@{\"do\":\"timer\",\"minutes\":10,\"text\":\"Чай\"}\n");
-        b.Append("Действия, после которых результат тебе не нужен (перед строкой @@ напиши короткий ответ владельцу — второй раз тебя не спросят):\n");
-        b.Append("timer {minutes, text} — таймер на N минут.\n");
-        b.Append("remind {at, text} — напоминание; at в виде \"ЧЧ:ММ\" (сегодня, а если время прошло — завтра) или \"ГГГГ-ММ-ДД ЧЧ:ММ\".\n");
-        b.Append("cancel_timers {} — отменить все таймеры и напоминания.\n");
-        b.Append("open {target} — открыть сайт (https://…), файл, папку или сохранённую ссылку по названию");
-        if (links.Count > 0) { b.Append(" (сохранены: "); for (int i = 0; i < links.Count && i < 12; i++) b.Append(i > 0 ? ", " : "").Append(links[i][0]); b.Append(")"); }
-        b.Append(".\n");
-        b.Append("stock {query} — показать остатки товара в МойСклад.\n");
-        b.Append("scene {name} — сценка котика: walk, shop, sofa, warehouse, party, raid, audit.\n");
-        b.Append("clipboard_set {text} — положить текст в буфер обмена.\n");
-        b.Append("media {cmd} — play_pause, next, prev, volume_up, volume_down, mute.\n");
-        b.Append("lock {} — заблокировать компьютер. shutdown {minutes} — выключить компьютер через N минут (спросит подтверждение). shutdown_cancel {} — отменить выключение.\n");
-        b.Append("remember {text} — запомнить факт о владельце надолго (имя, привычки, важные дела, предпочтения). forget {text} — забыть факты, где встречается этот текст.\n");
-        b.Append("Действия с результатом (напиши ТОЛЬКО строку @@, без другого текста; котик пришлёт результат, и тогда ты ответишь):\n");
-        b.Append("web {query} — поиск в интернете. Используй для фактов, новостей, цен, дат, всего, что могло измениться.\n");
-        b.Append("find_file {name} — найти файл или папку по части имени (Рабочий стол, Документы, Загрузки).\n");
-        b.Append("disk {} — свободное место на дисках. weather {} — погода сейчас. rates {} — курсы валют ЦБ.\n");
-        b.Append("list_timers {} — активные таймеры и напоминания. clipboard_get {} — что сейчас в буфере обмена.\n");
-        b.Append("Правила: выполняй действие только когда владелец об этом просит или это явно нужно для ответа. Не выдумывай результат действия — дождись его. ");
-        b.Append("Можно несколько строк @@ подряд. Если ничего делать не нужно — просто ответь текстом. Про программы, которые ты не можешь запустить, честно скажи.");
+        b.Append("\n\nТы умеешь выполнять действия на компьютере владельца");
+        if (native) b.Append(" — вызывай для этого функции.");
+        else
+        {
+            b.Append(". Чтобы выполнить действие, напиши ОТДЕЛЬНОЙ строкой @@ и JSON с полем do, например:\n@@{\"do\":\"timer\",\"minutes\":10,\"text\":\"Чай\"}\nДоступные действия:\n");
+            foreach (string[] t in Tools)
+            {
+                b.Append(t[0]).Append(" {");
+                string[] ps = t[2].Length > 0 ? t[2].Split(';') : new string[0];
+                for (int i = 0; i < ps.Length; i++) { string[] f = ps[i].Split(new char[] { ':' }, 3); b.Append(i > 0 ? ", " : "").Append(f[0].TrimEnd('!')).Append(" — ").Append(f[2]); }
+                b.Append("} — ").Append(t[1]).Append(t[3] == "1" ? " (результат придёт тебе следующим сообщением)" : "").Append("\n");
+            }
+            b.Append("После строки @@ ничего не пиши: котик выполнит действие и пришлёт результат, тогда ответишь владельцу. Можно несколько строк @@ подряд.");
+        }
+        if (links.Count > 0) { b.Append("\nСохранённые ссылки владельца: "); for (int i = 0; i < links.Count && i < 12; i++) b.Append(i > 0 ? ", " : "").Append(links[i][0]); b.Append("."); }
+        b.Append("\nПравила: действуй, только когда владелец об этом просит или это нужно для ответа. Никогда не выдумывай результат действия. ");
+        b.Append("Если просьб несколько — выполни все. Если владелец сообщает о себе что-то важное надолго — запомни это (remember). ");
+        b.Append("После действий ответь владельцу коротко, что сделано. Если искал в интернете — в конце назови сайт-источник. Чего не умеешь — честно скажи.");
         if (memory.Count > 0)
         {
-            b.Append("\n\nЧТО ТЫ ПОМНИШЬ О ВЛАДЕЛЬЦЕ (используй, когда это к месту, не пересказывай без повода):\n");
-            int from = Math.Max(0, memory.Count - 60);
-            for (int i = from; i < memory.Count; i++) b.Append("- ").Append(memory[i]).Append("\n");
+            b.Append("\n\nЧто ты помнишь о владельце (используй к месту, не пересказывай без повода):\n");
+            for (int i = Math.Max(0, memory.Count - 60); i < memory.Count; i++) b.Append("- ").Append(memory[i]).Append("\n");
         }
         return b.ToString();
     }
 
-    // ---------- запрос к ИИ с произвольной ролью и историей; текст возвращается как есть ----------
-    string CallAIMessages(string sys, List<string[]> msgs, int maxTokens)
+    // ---------- запрос к серверу ИИ ----------
+    static string PostAI(string fmt, string url, string key, string body)
     {
-        string fmt = aiFormat, url = aiUrl, model = aiModel, key = aiKey;
-        if (key.Length == 0) throw new Exception("нет ключа ИИ");
-        bool groq = url.Contains("api.groq.com"), gem = url.Contains("generativelanguage.googleapis.com");
-        StringBuilder b = new StringBuilder();
-        if (fmt == "anthropic")
-        {
-            b.Append("{\"model\":\"").Append(JEsc(model)).Append("\",\"max_tokens\":").Append(maxTokens).Append(",\"system\":\"").Append(JEsc(sys)).Append("\",\"messages\":[");
-            for (int i = 0; i < msgs.Count; i++) b.Append(i > 0 ? "," : "").Append("{\"role\":\"").Append(msgs[i][0]).Append("\",\"content\":\"").Append(JEsc(msgs[i][1])).Append("\"}");
-            b.Append("]}");
-        }
-        else
-        {
-            b.Append("{\"model\":\"").Append(JEsc(model)).Append("\",\"max_tokens\":").Append(groq || gem ? Math.Max(maxTokens, 2000) : maxTokens).Append(",");
-            if (gem && model.StartsWith("gemini-2.5")) b.Append("\"reasoning_effort\":\"none\",");
-            if (groq && model.Contains("gpt-oss")) b.Append("\"reasoning_effort\":\"low\",");
-            if (groq && model.Contains("qwen")) b.Append("\"reasoning_effort\":\"none\",");
-            b.Append("\"messages\":[{\"role\":\"system\",\"content\":\"").Append(JEsc(sys)).Append("\"}");
-            foreach (string[] m in msgs) b.Append(",{\"role\":\"").Append(m[0]).Append("\",\"content\":\"").Append(JEsc(m[1])).Append("\"}");
-            b.Append("]}");
-        }
         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
         ServicePointManager.Expect100Continue = false;
-        byte[] data = Encoding.UTF8.GetBytes(b.ToString());
+        byte[] data = Encoding.UTF8.GetBytes(body);
         for (int attempt = 1; ; attempt++)
         {
             try
@@ -171,12 +173,7 @@ partial class VapePet
                 else rq.Headers[HttpRequestHeader.Authorization] = "Bearer " + key;
                 rq.ContentLength = data.Length;
                 using (Stream s = rq.GetRequestStream()) s.Write(data, 0, data.Length);
-                string resp;
-                using (WebResponse rs = rq.GetResponse()) using (StreamReader sr = new StreamReader(rs.GetResponseStream(), Encoding.UTF8)) resp = sr.ReadToEnd();
-                string text = fmt == "anthropic" ? JValueAfter(resp, "\"content\"", "text") : JValueAfter(resp, "\"message\"", "content");
-                if (text == null) throw new Exception("непонятный ответ сервера");
-                if (text.Trim().Length == 0 && devMode) try { File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_answer.txt"), "RAW: " + resp + "\r\n", Encoding.UTF8); } catch { }
-                return text;
+                using (WebResponse rs = rq.GetResponse()) using (StreamReader sr = new StreamReader(rs.GetResponseStream(), Encoding.UTF8)) return sr.ReadToEnd();
             }
             catch (WebException we)
             {
@@ -190,18 +187,143 @@ partial class VapePet
         }
     }
 
+    static string ModelOptions(string url, string model, int maxTokens)
+    {
+        bool groq = url.Contains("api.groq.com"), gem = url.Contains("generativelanguage.googleapis.com");
+        string o = "\"max_tokens\":" + (groq || gem ? Math.Max(maxTokens, 2000) : maxTokens) + ",";
+        if (gem && model.StartsWith("gemini-2.5")) o += "\"reasoning_effort\":\"none\",";
+        if (groq && model.Contains("gpt-oss")) o += "\"reasoning_effort\":\"low\",";
+        if (groq && model.Contains("qwen")) o += "\"reasoning_effort\":\"none\",";
+        return o;
+    }
+
+    // запрос с произвольной ролью и историей; текст возвращается как есть
+    string CallAIMessages(string sys, List<string[]> msgs, int maxTokens)
+    {
+        string fmt = aiFormat, url = aiUrl, model = aiModel, key = aiKey;
+        if (key.Length == 0) throw new Exception("нет ключа ИИ");
+        StringBuilder b = new StringBuilder();
+        if (fmt == "anthropic")
+        {
+            b.Append("{\"model\":\"").Append(JEsc(model)).Append("\",\"max_tokens\":").Append(maxTokens).Append(",\"system\":\"").Append(JEsc(sys)).Append("\",\"messages\":[");
+            for (int i = 0; i < msgs.Count; i++) b.Append(i > 0 ? "," : "").Append("{\"role\":\"").Append(msgs[i][0]).Append("\",\"content\":\"").Append(JEsc(msgs[i][1])).Append("\"}");
+            b.Append("]}");
+        }
+        else
+        {
+            b.Append("{\"model\":\"").Append(JEsc(model)).Append("\",").Append(ModelOptions(url, model, maxTokens));
+            b.Append("\"messages\":[{\"role\":\"system\",\"content\":\"").Append(JEsc(sys)).Append("\"}");
+            foreach (string[] m in msgs) b.Append(",{\"role\":\"").Append(m[0]).Append("\",\"content\":\"").Append(JEsc(m[1])).Append("\"}");
+            b.Append("]}");
+        }
+        string resp = PostAI(fmt, url, key, b.ToString());
+        string text = fmt == "anthropic" ? JValueAfter(resp, "\"content\"", "text") : JValueAfter(resp, "\"message\"", "content");
+        if (text == null) throw new Exception("непонятный ответ сервера");
+        // некоторые «думающие» модели оставляют действие в поле reasoning, а ответ пустым
+        if (text.Trim().Length == 0) { string r = JValueAfter(resp, "\"message\"", "reasoning"); if (r != null && r.Contains("@@")) text = r.Substring(r.IndexOf("@@")); }
+        return text;
+    }
+
+    static string ToolsJson()
+    {
+        StringBuilder b = new StringBuilder("[");
+        for (int k = 0; k < Tools.Length; k++)
+        {
+            string[] t = Tools[k];
+            b.Append(k > 0 ? "," : "").Append("{\"type\":\"function\",\"function\":{\"name\":\"").Append(t[0]).Append("\",\"description\":\"").Append(JEsc(t[1])).Append("\",\"parameters\":{\"type\":\"object\",\"properties\":{");
+            string[] ps = t[2].Length > 0 ? t[2].Split(';') : new string[0]; StringBuilder req = new StringBuilder();
+            for (int i = 0; i < ps.Length; i++)
+            {
+                string[] f = ps[i].Split(new char[] { ':' }, 3); string n = f[0].TrimEnd('!');
+                b.Append(i > 0 ? "," : "").Append("\"").Append(n).Append("\":{\"type\":\"").Append(f[1]).Append("\",\"description\":\"").Append(JEsc(f[2])).Append("\"}");
+                if (f[0].EndsWith("!")) req.Append(req.Length > 0 ? "," : "").Append("\"").Append(n).Append("\"");
+            }
+            b.Append("},\"required\":[").Append(req).Append("]}}}");
+        }
+        return b.Append("]").ToString();
+    }
+
     // ---------- цикл: ответ ИИ → действия → результаты → ответ ----------
     static readonly Regex ActionLine = new Regex(@"@@\s*(\{.*\})\s*`*\s*$", RegexOptions.Multiline);
-    static readonly HashSet<string> InfoActions = new HashSet<string> { "web", "find_file", "disk", "weather", "rates", "list_timers", "clipboard_get" };
 
     // выполняется в фоновом потоке; возвращает готовый текст ответа
     string AgentRun(List<string[]> hist, string q, bool withCard)
     {
+        Invoke((Action)delegate { if (!agentReady) { agentReady = true; LoadMemory(); LoadAlarms(); } });
+        if (aiFormat != "anthropic")
+        {
+            // «родной» вызов функций — надёжнее; если сервер или модель его не понимают, переходим на текстовый способ
+            try { return AgentRunNative(hist, q, withCard); }
+            catch (Exception ex) { DevLog("  [функции не сработали]", ex.Message, null); if (ex is AgentStop) throw new Exception(ex.Message); }
+        }
+        return AgentRunText(hist, q, withCard);
+    }
+    class AgentStop : Exception { public AgentStop(string m) : base(m) { } }
+
+    void ActionNote(string name, JsonElement e, string q, bool withCard)
+    {
+        string label = ActionLabel(name, e);
+        if (label == null) return;
+        try { BeginInvoke((Action)delegate { Say(label, me.X, CatTop(me) - U(1), 'U'); if (withCard && card != null && card.Visible) ShowCard(q, label, false); }); } catch { }
+    }
+
+    string AgentRunNative(List<string[]> hist, string q, bool withCard)
+    {
+        string url = aiUrl, model = aiModel, key = aiKey, sys = null, tools = ToolsJson();
+        Invoke((Action)delegate { sys = AgentSystem(true); });
+        List<string> msgs = new List<string>();
+        msgs.Add("{\"role\":\"system\",\"content\":\"" + JEsc(sys) + "\"}");
+        foreach (string[] h in hist) msgs.Add("{\"role\":\"" + h[0] + "\",\"content\":\"" + JEsc(h[1]) + "\"}");
+        bool acted = false; string lastResults = "";
+        for (int step = 0; step < 6; step++)
+        {
+            string body = "{\"model\":\"" + JEsc(model) + "\"," + ModelOptions(url, model, 900) + "\"messages\":[" + string.Join(",", msgs.ToArray()) + "],\"tools\":" + tools + ",\"tool_choice\":\"auto\"}";
+            string resp;
+            try { resp = PostAI("openai", url, key, body); }
+            catch (Exception ex) { if (acted) throw new AgentStop(ex.Message); throw; }   // после выполненных действий второй раз (текстовым способом) не начинаем
+            using (JsonDocument doc = JsonDocument.Parse(resp))
+            {
+                JsonElement msg = doc.RootElement.GetProperty("choices")[0].GetProperty("message");
+                string content = Str(msg, "content");
+                JsonElement calls;
+                bool has = msg.TryGetProperty("tool_calls", out calls) && calls.ValueKind == JsonValueKind.Array && calls.GetArrayLength() > 0;
+                DevLog("  [шаг " + step + "]", content + (has ? " + " + calls.GetRawText() : ""), null);
+                if (!has)
+                {
+                    if (content.Trim().Length == 0) { if (lastResults.Length > 0) return CleanText(lastResults); throw new Exception("ИИ ничего не ответил"); }
+                    return CleanText(content);
+                }
+                msgs.Add("{\"role\":\"assistant\",\"content\":\"" + JEsc(content) + "\",\"tool_calls\":" + calls.GetRawText() + "}");
+                StringBuilder results = new StringBuilder();
+                foreach (JsonElement call in calls.EnumerateArray())
+                {
+                    string id = Str(call, "id"), name = "?", res;
+                    try
+                    {
+                        JsonElement fn = call.GetProperty("function"); name = Str(fn, "name");
+                        string args = Str(fn, "arguments"); if (args.Trim().Length == 0) args = "{}";
+                        using (JsonDocument ad = JsonDocument.Parse(args)) { ActionNote(name, ad.RootElement, q, withCard); res = DoAction(name, ad.RootElement); }
+                    }
+                    catch (JsonException) { res = "ошибка: непонятные параметры"; }
+                    catch (Exception ex) { res = "ошибка: " + ex.Message; }
+                    acted = true;
+                    results.Append(res).Append("\n");
+                    msgs.Add("{\"role\":\"tool\",\"tool_call_id\":\"" + JEsc(id) + "\",\"content\":\"" + JEsc(res) + "\"}");
+                }
+                lastResults = results.ToString().Trim();
+                DevLog("  [результаты]", lastResults, null);
+            }
+        }
+        return CleanText(lastResults.Length > 0 ? lastResults : "Мяу, запутался в делах. Попробуй сказать проще.");
+    }
+
+    string AgentRunText(List<string[]> hist, string q, bool withCard)
+    {
         string sys = null;
-        Invoke((Action)delegate { if (!agentReady) { agentReady = true; LoadMemory(); LoadAlarms(); } sys = AgentSystem(); });
+        Invoke((Action)delegate { sys = AgentSystem(false); });
         List<string[]> msgs = new List<string[]>(hist);
-        string said = "", lastResults = "";
-        for (int step = 0; step < 4; step++)
+        string lastResults = "";
+        for (int step = 0; step < 5; step++)
         {
             string raw = CallAIMessages(sys, msgs, 900);
             DevLog("  [шаг " + step + "]", raw, null);
@@ -212,8 +334,7 @@ partial class VapePet
                 if (text.Length == 0 && lastResults.Length > 0) return CleanText(lastResults);   // ИИ промолчал — отдаём результаты как есть
                 return CleanText(text.Length > 0 ? text : raw);
             }
-            if (text.Length > 0) said = text;
-            bool needAnswer = false; StringBuilder results = new StringBuilder();
+            StringBuilder results = new StringBuilder();
             foreach (Match m in acts)
             {
                 string name = "?", res;
@@ -223,23 +344,22 @@ partial class VapePet
                     {
                         JsonElement e = doc.RootElement;
                         name = Str(e, "do");
-                        string label = ActionLabel(name, e);
-                        if (label != null) try { BeginInvoke((Action)delegate { Say(label, me.X, CatTop(me) - U(1), 'U'); if (withCard && card != null && card.Visible) ShowCard(q, label, false); }); } catch { }
+                        if (name.Length == 0)   // встречается и такая запись: {"disk":{}}
+                            foreach (JsonProperty pr in e.EnumerateObject()) { if (IsTool(pr.Name)) { name = pr.Name; if (pr.Value.ValueKind == JsonValueKind.Object) e = pr.Value; } break; }
+                        ActionNote(name, e, q, withCard);
                         res = DoAction(name, e);
                     }
                 }
                 catch (JsonException) { res = "ошибка: непонятный JSON в действии"; }
                 catch (Exception ex) { res = "ошибка: " + ex.Message; }
-                if (InfoActions.Contains(name) || res.StartsWith("ошибка")) needAnswer = true;
                 results.Append("[").Append(name).Append("] ").Append(res).Append("\n");
             }
-            lastResults = results.ToString();
+            lastResults = results.ToString().Trim();
             DevLog("  [результаты]", lastResults, null);
-            if (!needAnswer && said.Length > 0) return CleanText(said);
             msgs.Add(new string[] { "assistant", raw });
-            msgs.Add(new string[] { "user", "[Результаты действий — это сообщение прислал котик, а не владелец]\n" + results + "\nТеперь ответь владельцу коротко, по-русски, опираясь на эти результаты. Если искал в интернете — в конце укажи сайт-источник." });
+            msgs.Add(new string[] { "user", "[Результаты действий — это сообщение прислал котик, а не владелец]\n" + lastResults + "\n\nЕсли нужны ещё действия — выполни их. Если всё сделано — ответь владельцу коротко, по-русски, опираясь на эти результаты." });
         }
-        return CleanText(said.Length > 0 ? said : "Мяу, запутался в делах. Попробуй сказать проще.");
+        return CleanText(lastResults.Length > 0 ? lastResults : "Мяу, запутался в делах. Попробуй сказать проще.");
     }
 
     static string Str(JsonElement e, string key)
@@ -278,7 +398,8 @@ partial class VapePet
             return r ?? "ничего не нашлось";
         }
         if (name == "find_file") return FindFiles(Str(e, "name"));
-        string result = "ошибка: неизвестное действие " + name;
+        if (!IsTool(name)) return "ошибка: неизвестное действие " + name;
+        string result = "ошибка";
         Invoke((Action)delegate { try { result = DoActionUi(name, e); } catch (Exception ex) { result = "ошибка: " + ex.Message; } });
         return result;
     }
