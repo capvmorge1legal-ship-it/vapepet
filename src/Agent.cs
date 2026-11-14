@@ -281,6 +281,8 @@ partial class VapePet
             string resp;
             try { resp = PostAI("openai", url, key, body); }
             catch (Exception ex) { if (acted) throw new AgentStop(ex.Message); throw; }   // после выполненных действий второй раз (текстовым способом) не начинаем
+            try
+            {
             using (JsonDocument doc = JsonDocument.Parse(resp))
             {
                 JsonElement msg = doc.RootElement.GetProperty("choices")[0].GetProperty("message");
@@ -313,6 +315,8 @@ partial class VapePet
                 lastResults = results.ToString().Trim();
                 DevLog("  [результаты]", lastResults, null);
             }
+            }
+            catch (Exception ex) when (acted && !(ex is AgentStop)) { throw new AgentStop(ex.Message); }
         }
         return CleanText(lastResults.Length > 0 ? lastResults : "Мяу, запутался в делах. Попробуй сказать проще.");
     }
