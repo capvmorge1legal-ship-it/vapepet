@@ -1,0 +1,23 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build VapePet.exe
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File build\build.ps1
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path dist\* -DestinationPath VapePet-install.zip
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/VapePet.exe
+            VapePet-install.zip
