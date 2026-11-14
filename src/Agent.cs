@@ -22,6 +22,12 @@ partial class VapePet
     static string AlarmsPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_alarms.txt"); } }
     List<string> memory = new List<string>();
     bool agentReady; int agentTick; string alarmsSaved = "";
+    static readonly bool devMode = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_dev.flag"));
+    void DevLog(string q, string ans, string err)
+    {
+        if (!devMode) return;
+        try { File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_answer.txt"), "Q: " + q + "\r\nA: " + (ans ?? ("ОШИБКА " + err)) + "\r\n\r\n", Encoding.UTF8); } catch { }
+    }
 
     // ---------- память ----------
     void LoadMemory()
@@ -81,6 +87,12 @@ partial class VapePet
     {
         if (!agentReady) { agentReady = true; LoadMemory(); LoadAlarms(); }
         if (++agentTick % 90 != 0) return;
+        if (devMode)
+        {
+            // проверка без рук: вопрос из файла VapePet_ask.txt, ответ дописывается в VapePet_answer.txt
+            string ask = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VapePet_ask.txt");
+            try { if (File.Exists(ask) && !aiBusy) { string q = File.ReadAllText(ask, Encoding.UTF8).Trim(); File.Delete(ask); if (q.Length > 0) AskAI(q, false); } } catch { }
+        }
         string now = AlarmsText();
         if (now == alarmsSaved) return;
         alarmsSaved = now;

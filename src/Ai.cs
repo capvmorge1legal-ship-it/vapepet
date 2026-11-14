@@ -280,7 +280,7 @@ partial class VapePet
             {
                 BeginInvoke((MethodInvoker)delegate
                 {
-                    aiBusy = false; ChatBusy(false);
+                    aiBusy = false; ChatBusy(false); DevLog(q, ans, err);
                     if (err != null)
                     {
                         if (aiHistory.Count > 0) aiHistory.RemoveAt(aiHistory.Count - 1);
