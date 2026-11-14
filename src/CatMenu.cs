@@ -76,6 +76,17 @@ partial class VapePet
         return mi != null && mi.DropDownItems.Count > 0;
     }
 
+    // скруглённый прямоугольник для окон WinForms (меню, настройки) — обычный System.Drawing
+    static System.Drawing.Drawing2D.GraphicsPath RoundRectW(float x, float y, float w, float h, float r)
+    {
+        System.Drawing.Drawing2D.GraphicsPath p = new System.Drawing.Drawing2D.GraphicsPath();
+        float d = Math.Max(0.1f, Math.Min(r * 2, Math.Min(w, h)));
+        p.AddArc(x, y, d, d, 180, 90); p.AddArc(x + w - d, y, d, d, 270, 90);
+        p.AddArc(x + w - d, y + h - d, d, d, 0, 90); p.AddArc(x, y + h - d, d, d, 90, 90);
+        p.CloseFigure();
+        return p;
+    }
+
     [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
     class CatMenu : Form
@@ -294,7 +305,7 @@ partial class VapePet
             roundedByDwm = DwmSetWindowAttribute(Handle, 33, ref pref, 4) == 0;
             if (!roundedByDwm)
             {
-                using (GraphicsPath gp = RoundRect(0, 0, Width, Height, S(9))) Region = new Region(gp);
+                using (GraphicsPath gp = RoundRectW(0, 0, Width, Height, S(9))) Region = new Region(gp);
             }
         }
 
@@ -490,7 +501,7 @@ partial class VapePet
             g.SmoothingMode = SmoothingMode.AntiAlias;
             using (LinearGradientBrush b = new LinearGradientBrush(ClientRectangle, Bg1, Bg2, 90f)) g.FillRectangle(b, ClientRectangle);
             using (Pen sh = new Pen(Color.FromArgb(22, 255, 255, 255), 1)) g.DrawLine(sh, S(12), 1, Width - S(12), 1);
-            if (!roundedByDwm) using (GraphicsPath gp = RoundRect(0.5f, 0.5f, Width - 1.5f, Height - 1.5f, S(9))) using (Pen pen = new Pen(Edge, 1)) g.DrawPath(pen, gp);
+            if (!roundedByDwm) using (GraphicsPath gp = RoundRectW(0.5f, 0.5f, Width - 1.5f, Height - 1.5f, S(9))) using (Pen pen = new Pen(Edge, 1)) g.DrawPath(pen, gp);
             for (int i = 0; i < rows.Count; i++) DrawRow(g, rows[i], i == hover || (Child != null && childOf != null && rows[i].Item == childOf && rows[i].Hint == null));
         }
 
@@ -517,7 +528,7 @@ partial class VapePet
                     {
                         Rectangle f = new Rectangle(R.X + S(6), R.Y + S(4), R.Width - S(12), R.Height - S(8));
                         bool focus = r.Box != null && r.Box.Focused;
-                        using (GraphicsPath gp = RoundRect(f.X, f.Y, f.Width, f.Height, S(7)))
+                        using (GraphicsPath gp = RoundRectW(f.X, f.Y, f.Width, f.Height, S(7)))
                         {
                             using (SolidBrush b = new SolidBrush(FieldBg)) g.FillPath(b, gp);
                             using (Pen pen = new Pen(focus ? MenuAc : Color.FromArgb(78, 86, 110), focus ? 1.6f : 1f)) g.DrawPath(pen, gp);
@@ -529,9 +540,9 @@ partial class VapePet
             bool en = r.Item.Enabled;
             if (hot && en)
             {
-                using (GraphicsPath gp = RoundRect(R.X, R.Y + 1, R.Width, R.Height - 2, S(7)))
+                using (GraphicsPath gp = RoundRectW(R.X, R.Y + 1, R.Width, R.Height - 2, S(7)))
                 using (LinearGradientBrush b = new LinearGradientBrush(R, Color.FromArgb(84, 62, 42), HiBg, 0f)) g.FillPath(b, gp);
-                using (GraphicsPath ap = RoundRect(R.X + S(2), R.Y + S(9), S(3), R.Height - S(18), S(1.5f))) using (SolidBrush b = new SolidBrush(MenuAc)) g.FillPath(b, ap);
+                using (GraphicsPath ap = RoundRectW(R.X + S(2), R.Y + S(9), S(3), R.Height - S(18), S(1.5f))) using (SolidBrush b = new SolidBrush(MenuAc)) g.FillPath(b, ap);
             }
             bool toggle = r.Item.Tag is string && (string)r.Item.Tag == "toggle";
             int x = R.X + S(12);

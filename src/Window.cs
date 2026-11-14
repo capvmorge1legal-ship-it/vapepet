@@ -93,15 +93,11 @@ partial class VapePet
         {
             try
             {
-                BitmapData bd = new BitmapData();
-                bd.Width = dibW; bd.Height = dibH; bd.Stride = dibW * 4; bd.PixelFormat = PixelFormat.Format32bppPArgb; bd.Scan0 = dibBits;
-                bmp.LockBits(new Rectangle(0, 0, dibW, dibH), ImageLockMode.ReadOnly | ImageLockMode.UserInputBuffer, PixelFormat.Format32bppPArgb, bd);
-                bmp.UnlockBits(bd);
+                bmp.CopyTo(dibBits);
                 ok = Present(dibDc, dibW, dibH);
             }
             catch (Exception ex) { GuardLog("dib", ex); dibBroken = true; FreeDib(); }
         }
-        if (!ok) ok = PushLayeredOld(bmp);
         if (ok) presentFails = 0;
         else if (++presentFails % 30 == 1) { FreeDib(); dibBroken = false; }
     }
@@ -119,27 +115,6 @@ partial class VapePet
             return UpdateLayeredWindow(Handle, screenDc, ref dst, ref size, srcDc, ref src, 0, ref bf, 2);
         }
         finally { ReleaseDC(IntPtr.Zero, screenDc); }
-    }
-
-    // запасной путь — как раньше
-    bool PushLayeredOld(Bitmap bmp)
-    {
-        IntPtr screenDc = GetDC(IntPtr.Zero);
-        IntPtr memDc = CreateCompatibleDC(screenDc);
-        IntPtr hBmp = IntPtr.Zero, old = IntPtr.Zero;
-        try
-        {
-            hBmp = bmp.GetHbitmap(Color.FromArgb(0));
-            old = SelectObject(memDc, hBmp);
-            return Present(memDc, bmp.Width, bmp.Height);
-        }
-        catch (Exception ex) { GuardLog("hbitmap", ex); return false; }
-        finally
-        {
-            ReleaseDC(IntPtr.Zero, screenDc);
-            if (hBmp != IntPtr.Zero) { SelectObject(memDc, old); DeleteObject(hBmp); }
-            DeleteDC(memDc);
-        }
     }
 
     // ================= защита от «пустого котика» =================
@@ -213,20 +188,7 @@ partial class VapePet
         else emptyChecks = 0;
     }
 
-    bool FrameEmpty(Bitmap b)
-    {
-        BitmapData d = null;
-        try
-        {
-            d = b.LockBits(new Rectangle(0, 0, b.Width, b.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            int n = d.Stride * b.Height; byte[] px = new byte[n];
-            Marshal.Copy(d.Scan0, px, 0, n);
-            for (int i = 3; i < n; i += 16) if (px[i] > 8) return false;
-            return true;
-        }
-        catch { return false; }
-        finally { if (d != null) b.UnlockBits(d); }
-    }
+    bool FrameEmpty(Bitmap b) { try { return b.IsBlank(); } catch { return false; } }
 
     void ResetRendering(string why)
     {

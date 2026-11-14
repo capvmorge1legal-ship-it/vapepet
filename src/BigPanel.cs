@@ -44,33 +44,22 @@ partial class VapePet
 
     // ---------- настоящее «матовое стекло»: размытый снимок того, что под панелью ----------
     [DllImport("user32.dll")] static extern bool SetWindowDisplayAffinity(IntPtr h, uint aff);
-    bool bigBlurOk; Bitmap bigBlur; public Bitmap PreviewBehind;
+    bool bigBlurOk; Bitmap bigBlur; public System.Drawing.Bitmap PreviewBehind;
     void GrabBehind()
     {
         try
         {
             Size sz = BigSize(); Point at = BigPos();
-            Bitmap src = null;
-            if (PreviewBehind != null) src = PreviewBehind.Clone(new Rectangle(0, 0, Math.Min(sz.Width, PreviewBehind.Width), Math.Min(sz.Height, PreviewBehind.Height)), PixelFormat.Format24bppRgb);
-            else if (bigBlurOk) { src = new Bitmap(sz.Width, sz.Height, PixelFormat.Format24bppRgb); using (Graphics g = Graphics.FromImage(src)) g.CopyFromScreen(at.X, at.Y, 0, 0, sz); }
-            if (src == null) return;
-            int sw = Math.Max(4, sz.Width / 14), sh = Math.Max(4, sz.Height / 14);
-            using (src)
-            using (Bitmap small = new Bitmap(sw, sh, PixelFormat.Format24bppRgb))
+            System.Drawing.Bitmap shot = null;
+            if (PreviewBehind != null) shot = PreviewBehind.Clone(new Rectangle(0, 0, Math.Min(sz.Width, PreviewBehind.Width), Math.Min(sz.Height, PreviewBehind.Height)), PixelFormat.Format32bppPArgb);
+            else if (bigBlurOk) { shot = new System.Drawing.Bitmap(sz.Width, sz.Height, PixelFormat.Format32bppPArgb); using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(shot)) g.CopyFromScreen(at.X, at.Y, 0, 0, sz); }
+            if (shot == null) return;
+            using (shot)
+            using (Bitmap src = Bitmap.FromGdi(shot))
             {
-                using (Graphics g = Graphics.FromImage(small)) { g.InterpolationMode = InterpolationMode.HighQualityBilinear; g.DrawImage(src, 0, 0, sw, sh); }
-                // плавное увеличение в два шага — без «квадратиков»
-                Bitmap big = new Bitmap(sz.Width, sz.Height, PixelFormat.Format32bppPArgb);
-                using (Bitmap mid = new Bitmap(sw * 4, sh * 4, PixelFormat.Format24bppRgb))
-                {
-                    using (Graphics g = Graphics.FromImage(mid)) { g.InterpolationMode = InterpolationMode.HighQualityBicubic; g.PixelOffsetMode = PixelOffsetMode.Half; g.DrawImage(small, new Rectangle(-2, -2, mid.Width + 4, mid.Height + 4)); }
-                    using (Bitmap mid2 = new Bitmap(sw, sh, PixelFormat.Format24bppRgb))
-                    {
-                        using (Graphics g = Graphics.FromImage(mid2)) { g.InterpolationMode = InterpolationMode.HighQualityBilinear; g.DrawImage(mid, 0, 0, sw, sh); }
-                        using (Graphics g = Graphics.FromImage(mid)) { g.InterpolationMode = InterpolationMode.HighQualityBicubic; g.PixelOffsetMode = PixelOffsetMode.Half; g.DrawImage(mid2, new Rectangle(-2, -2, mid.Width + 4, mid.Height + 4)); }
-                    }
-                    using (Graphics g = Graphics.FromImage(big)) { g.InterpolationMode = InterpolationMode.HighQualityBicubic; g.PixelOffsetMode = PixelOffsetMode.Half; g.DrawImage(mid, new Rectangle(-4, -4, sz.Width + 8, sz.Height + 8)); }
-                }
+                // настоящее гауссово размытие (в старом движке приходилось имитировать уменьшением и увеличением)
+                Bitmap big = new Bitmap(sz.Width, sz.Height);
+                using (Graphics g = Graphics.FromImage(big)) g.DrawBlurred(src, 0, 0, Math.Max(6f, B(16)));
                 if (bigBlur != null) bigBlur.Dispose(); bigBlur = big;
             }
         }
@@ -91,7 +80,7 @@ partial class VapePet
     {
         try
         {
-            using (Graphics g0 = Graphics.FromHwnd(IntPtr.Zero)) bk = g0.DpiX / 96f;
+            using (System.Drawing.Graphics g0 = System.Drawing.Graphics.FromHwnd(IntPtr.Zero)) bk = g0.DpiX / 96f;
             if (bigWin == null || bigWin.IsDisposed)
             {
                 bigWin = new LayerWin(this, BigSize, BigPos, DrawBig);
@@ -550,7 +539,7 @@ partial class VapePet
             if (!created) return;
             try { SetProcessDPIAware(); } catch { }
             float dpi = 96;
-            using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) dpi = g.DpiX;
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero)) dpi = g.DpiX;
             Application.EnableVisualStyles();
             try { Application.SetDefaultFont(new Font("Microsoft Sans Serif", 8.25f)); } catch { }   // старые окна свёрстаны под этот шрифт
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);

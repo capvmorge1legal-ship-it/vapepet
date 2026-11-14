@@ -735,7 +735,7 @@ namespace Gdi
         public void DrawBlurred(Bitmap b, float x, float y, float sigma)
         {
             using (SKPaint p = new SKPaint())
-            using (SKImageFilter f = SKImageFilter.CreateBlur(sigma, sigma))
+            using (SKImageFilter f = SKImageFilter.CreateBlur(sigma, sigma, SKShaderTileMode.Clamp))
             using (SKImage img = b.surface.Snapshot())
             {
                 p.ImageFilter = f;

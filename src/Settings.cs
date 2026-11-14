@@ -285,9 +285,9 @@ partial class VapePet
             {
                 STab t = tabs[i]; bool on = i == cur, hot = i == hoverTab;
                 if (on || hot)
-                    using (GraphicsPath gp = RoundRect(t.R.X, t.R.Y, t.R.Width, t.R.Height, S(8)))
+                    using (GraphicsPath gp = RoundRectW(t.R.X, t.R.Y, t.R.Width, t.R.Height, S(8)))
                     using (SolidBrush b = new SolidBrush(on ? Color.FromArgb(70, 54, 40) : Color.FromArgb(34, 38, 52))) g.FillPath(b, gp);
-                if (on) using (GraphicsPath ap = RoundRect(t.R.X + S(2), t.R.Y + S(10), S(3), t.R.Height - S(20), S(1.5f))) using (SolidBrush b = new SolidBrush(MenuAc)) g.FillPath(b, ap);
+                if (on) using (GraphicsPath ap = RoundRectW(t.R.X + S(2), t.R.Y + S(10), S(3), t.R.Height - S(20), S(1.5f))) using (SolidBrush b = new SolidBrush(MenuAc)) g.FillPath(b, ap);
                 TextRenderer.DrawText(g, t.Name, fTab, new Rectangle(t.R.X + S(16), t.R.Y, t.R.Width - S(20), t.R.Height), on ? Color.FromArgb(255, 216, 176) : TextC, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
             }
             TextRenderer.DrawText(g, "версия " + AppVersion, fSmall, new Rectangle(S(20), ClientSize.Height - S(34), SideW - S(30), S(24)), DimC, TextFormatFlags.Left | TextFormatFlags.NoPrefix);
@@ -316,7 +316,7 @@ partial class VapePet
                 TextRenderer.DrawText(g, r.Text, fSmall, new Rectangle(R.X + S(4), R.Y, R.Width - S(8), R.Height), DimC, TextFormatFlags.Left | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix);
                 return;
             }
-            using (GraphicsPath gp = RoundRect(R.X, R.Y, R.Width, R.Height, S(10)))
+            using (GraphicsPath gp = RoundRectW(R.X, R.Y, R.Width, R.Height, S(10)))
             {
                 using (SolidBrush b = new SolidBrush(hot && r.Kind != 2 ? Color.FromArgb(44, 48, 66) : Card)) g.FillPath(b, gp);
                 using (Pen pen = new Pen(Color.FromArgb(46, 51, 70))) g.DrawPath(pen, gp);
@@ -334,7 +334,7 @@ partial class VapePet
                 for (int k = 0; k < r.Choices.Count; k++)
                 {
                     Rectangle c = r.ChoiceR[k]; bool on = r.Choices[k].Checked, h = hot && k == hoverChoice;
-                    using (GraphicsPath gp = RoundRect(c.X, c.Y, c.Width, c.Height, c.Height / 2f))
+                    using (GraphicsPath gp = RoundRectW(c.X, c.Y, c.Width, c.Height, c.Height / 2f))
                     {
                         using (SolidBrush b = new SolidBrush(on ? MenuAc : h ? Color.FromArgb(62, 68, 90) : Color.FromArgb(48, 53, 70))) g.FillPath(b, gp);
                     }
@@ -348,7 +348,7 @@ partial class VapePet
             {
                 bool on = r.Item.Checked;
                 Rectangle sw = new Rectangle(R.Right - S(62), R.Y + (R.Height - S(26)) / 2, S(46), S(26));
-                using (GraphicsPath gp = RoundRect(sw.X, sw.Y, sw.Width, sw.Height, sw.Height / 2f))
+                using (GraphicsPath gp = RoundRectW(sw.X, sw.Y, sw.Width, sw.Height, sw.Height / 2f))
                 using (SolidBrush b = new SolidBrush(on ? MenuAc : Color.FromArgb(70, 76, 98))) g.FillPath(b, gp);
                 int d = S(20), kx = on ? sw.Right - d - S(3) : sw.X + S(3);
                 using (SolidBrush b = new SolidBrush(Color.White)) g.FillEllipse(b, kx, sw.Y + S(3), d, d);

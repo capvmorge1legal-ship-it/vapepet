@@ -796,9 +796,7 @@ partial class VapePet
                 }
                 finally { ReleaseDC(IntPtr.Zero, sdc); }
             }
-            BitmapData bd = new BitmapData(); bd.Width = w; bd.Height = h; bd.Stride = w * 4; bd.PixelFormat = PixelFormat.Format32bppPArgb; bd.Scan0 = bits;
-            bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadOnly | ImageLockMode.UserInputBuffer, PixelFormat.Format32bppPArgb, bd);
-            bmp.UnlockBits(bd);
+            bmp.CopyTo(bits);
             Point at = pos();
             IntPtr screen = GetDC(IntPtr.Zero);
             try
