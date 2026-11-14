@@ -1,5 +1,5 @@
 name: release
-# Релиз выпускается сам, когда в main меняется код: версия берётся из AppVersion в src/VapePet.cs.
+# Релиз выпускается сам, когда в main меняется код: версия берётся из AppVersion в src/System.cs.
 # Если релиз с такой версией уже есть — ничего не делает.
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         id: ver
         shell: powershell
         run: |
-          $m = Select-String -Path src\VapePet.cs -Pattern 'AppVersion = "([0-9.]+)"' | Select-Object -First 1
+          $m = Select-String -Path src\*.cs -Pattern 'AppVersion = "([0-9.]+)"' | Select-Object -First 1
           $v = $m.Matches[0].Groups[1].Value
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           $exists = $false
