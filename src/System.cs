@@ -104,7 +104,14 @@ partial class VapePet
                 {
                     newVer = mv.Groups[1].Value;
                     file = Path.Combine(Path.GetTempPath(), "VapePet-" + newVer + ".exe");
-                    using (WebClient wc = new WebClient()) { wc.Headers["User-Agent"] = "VapePet/" + AppVersion; wc.DownloadFile(mu.Groups[1].Value, file); }
+                    try { using (WebClient wc = new WebClient()) { wc.Headers["User-Agent"] = "VapePet/" + AppVersion; wc.DownloadFile(mu.Groups[1].Value, file); } }
+                    catch
+                    {
+                        // через некоторые VPN .NET не может скачать с GitHub, а curl из Windows может
+                        System.Diagnostics.ProcessStartInfo ci = new System.Diagnostics.ProcessStartInfo("curl.exe", "-sSL --max-time 900 -o \"" + file + "\" \"" + mu.Groups[1].Value + "\"");
+                        ci.UseShellExecute = false; ci.CreateNoWindow = true;
+                        using (System.Diagnostics.Process cp = System.Diagnostics.Process.Start(ci)) { if (!cp.WaitForExit(960000) || cp.ExitCode != 0 || !File.Exists(file)) throw new Exception("не удалось скачать обновление"); }
+                    }
                     byte[] head = new byte[2];
                     using (FileStream fs = File.OpenRead(file)) { if (fs.Length < 100000 || fs.Read(head, 0, 2) != 2 || head[0] != (byte)'M' || head[1] != (byte)'Z') throw new Exception("скачанный файл повреждён"); }
                 }

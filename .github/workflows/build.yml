@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -26,3 +28,11 @@ jobs:
             dist/VapePet.exe
             dist/install.ps1
             dist/*.cmd
+      - name: Test pre-release (не попадает в автообновление)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-${{ github.ref_name }}
+          name: Тестовая сборка ${{ github.ref_name }}
+          prerelease: true
+          target_commitish: ${{ github.sha }}
+          files: dist/VapePet.exe
