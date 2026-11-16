@@ -418,7 +418,7 @@ partial class VapePet
     }
 
     // ---------- значки над котом: таймеры и загрузки
-    void DrawBadges(Graphics g)
+    void DrawBadges(G g)
     {
         List<string> lines = new List<string>();
         foreach (Alarm a in alarms)
@@ -1083,7 +1083,7 @@ partial class VapePet
         return rows;
     }
 
-    void DrawPanel(Graphics g)
+    void DrawPanel(G g)
     {
         panelHits.Clear();
         if (!panelShow) return;

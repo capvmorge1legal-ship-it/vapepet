@@ -281,6 +281,8 @@ partial class VapePet
         PutToggle(sets, "Показывать скорость над котом", "Показывает скорость сети");
         ToolStripMenuItem hfs = new ToolStripMenuItem("Прячется в играх и фильмах на весь экран", null, delegate (object o, EventArgs e) { hideInFullscreen = !hideInFullscreen; ((ToolStripMenuItem)o).Checked = hideInFullscreen; SaveSettings(); });
         hfs.Checked = hideInFullscreen; MakeToggle(hfs); sets.DropDownItems.Add(hfs);
+        ToolStripMenuItem sk = new ToolStripMenuItem("Новое рисование (SkiaSharp)", null, delegate (object o, EventArgs e) { G.UseSkia = !G.UseSkia; ((ToolStripMenuItem)o).Checked = G.UseSkia; SaveSettings(); HudChanged(); });
+        sk.Checked = G.UseSkia; MakeToggle(sk); sets.DropDownItems.Add(sk);
         sets.DropDownItems.Add(MenuHeader("Версия " + AppVersion));
         ToolStripMenuItem au = new ToolStripMenuItem("Обновляться автоматически", null, delegate (object o, EventArgs e) { autoUpdate = !autoUpdate; ((ToolStripMenuItem)o).Checked = autoUpdate; SaveSettings(); });
         au.Checked = autoUpdate; MakeToggle(au); sets.DropDownItems.Add(au);

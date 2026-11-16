@@ -613,7 +613,7 @@ partial class VapePet
     public float RoamFeetX { get { return RoamW / 2f; } }
     public float RoamFeetY { get { return RoamH / 2f; } }
 
-    public void RoamDraw(Graphics g)
+    public void RoamDraw(G g)
     {
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -632,12 +632,12 @@ partial class VapePet
             using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(150 * k), 214, 226, 238))) g.FillEllipse(b, p.X - rx + fx - p.R + U(0.3f), p.Y - ry + fy - p.R + U(0.4f), p.R * 2, p.R * 2);
             using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(215 * k), 255, 255, 255))) g.FillEllipse(b, p.X - rx + fx - p.R, p.Y - ry + fy - p.R, p.R * 2, p.R * 1.9f);
         }
-        GraphicsState st = g.Save();
+        GState st = g.Save();
         int g0 = Ground;
         try
         {
             if (rRot != 0) { g.TranslateTransform(fx, fy); g.RotateTransform(rRot); g.TranslateTransform(-fx, -fy); }
-            GraphicsState st2 = g.Save();
+            GState st2 = g.Save();
             g.TranslateTransform(fx, fy - Ground);
             rc.X = 0; rc.Y = 0;
             DrawCat(g, rc);
@@ -667,7 +667,7 @@ partial class VapePet
         }
     }
 
-    void DrawHeldClock(Graphics g, float cx, float cy)
+    void DrawHeldClock(G g, float cx, float cy)
     {
         float bob = (float)Math.Sin(tick * 0.5f) * U(0.6f);
         RectangleF r = new RectangleF(cx - U(13), cy - U(7) + bob, U(26), U(14));
@@ -747,7 +747,7 @@ partial class VapePet
         {
             int w = p.RoamW, h = p.RoamH;
             if (bmp == null || bmp.Width != w || bmp.Height != h) { if (bmp != null) bmp.Dispose(); bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb); }
-            using (Graphics g = Graphics.FromImage(bmp)) { g.Clear(Color.Transparent); p.RoamDraw(g); }
+            using (G g = G.On(bmp)) { g.Clear(Color.Transparent); p.RoamDraw(g); }
             if (dib == IntPtr.Zero || dw != w || dh != h)
             {
                 FreeDib();

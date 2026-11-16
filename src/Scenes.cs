@@ -232,7 +232,7 @@ partial class VapePet
     // ---- рисование: автозак, камера, мигалки ----
     PointF V(float x0, float x, float y) { return new PointF(x0 + U(x), Ground - U(y)); }
 
-    void DrawWheel(Graphics g, float cx, float cy, float r, float rot)
+    void DrawWheel(G g, float cx, float cy, float r, float rot)
     {
         using (SolidBrush b = new SolidBrush(Color.FromArgb(70, 60, 62))) g.FillEllipse(b, cx - r, cy - r, r * 2, r * 2);
         using (Pen p = new Pen(InkC, Math.Max(1.2f, r * 0.16f))) g.DrawEllipse(p, cx - r, cy - r, r * 2, r * 2);
@@ -255,14 +255,14 @@ partial class VapePet
     }
 
     // стекло с бликами и контуром
-    void CarGlass(Graphics g, PointF[] pts, Pen ink)
+    void CarGlass(G g, PointF[] pts, Pen ink)
     {
         using (GraphicsPath p = new GraphicsPath())
         {
             p.AddPolygon(pts);
             RectangleF r = p.GetBounds();
             using (SolidBrush b = new SolidBrush(Color.FromArgb(176, 212, 224))) g.FillPath(b, p);
-            GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+            GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
             using (SolidBrush b = new SolidBrush(Color.FromArgb(120, 168, 190))) g.FillRectangle(b, r.X, r.Y + r.Height * 0.62f, r.Width, r.Height * 0.4f);
             using (SolidBrush b = new SolidBrush(Color.FromArgb(120, 255, 255, 255)))
             {
@@ -274,12 +274,12 @@ partial class VapePet
         }
     }
 
-    void CarArch(Graphics g, float cx, float r)
+    void CarArch(G g, float cx, float r)
     {
         using (SolidBrush b = new SolidBrush(Color.FromArgb(74, 56, 54))) g.FillPie(b, cx - r, Ground - U(3.4f) - r, r * 2, r * 2, 180, 180);
     }
 
-    void DrawPoliceVan(Graphics g)
+    void DrawPoliceVan(G g)
     {
         float x0 = vanX, lw = Math.Max(1.4f, U(0.55f));
         Shadow(g, x0 + U(27), U(56));
@@ -293,7 +293,7 @@ partial class VapePet
             {
                 p.AddPolygon(body);
                 using (SolidBrush b = new SolidBrush(wc)) g.FillPath(b, p);
-                GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                 using (SolidBrush b = new SolidBrush(wd)) g.FillRectangle(b, x0 - U(1), Ground - U(7.2f), U(57), U(5));
                 using (SolidBrush b = new SolidBrush(Color.FromArgb(78, 130, 204))) g.FillRectangle(b, x0, Ground - U(11.6f), U(56), U(3.4f));
                 using (SolidBrush b = new SolidBrush(Color.FromArgb(56, 104, 176))) g.FillRectangle(b, x0, Ground - U(9.2f), U(56), U(1f));
@@ -338,7 +338,7 @@ partial class VapePet
         DrawWheel(g, x0 + U(44), Ground - U(3.6f), U(3.6f), rot);
     }
 
-    void DrawSiren(Graphics g)
+    void DrawSiren(G g)
     {
         bool f = (tick / 6) % 2 == 0;
         RectangleF r = new RectangleF(A - U(10), Ground - U(60), U(220), U(70));
@@ -347,14 +347,14 @@ partial class VapePet
 
     float JailA() { float a = Math.Min(1f, jailEnterT / 20f); return 1 - (1 - a) * (1 - a); }
 
-    void DrawJailBack(Graphics g)
+    void DrawJailBack(G g)
     {
         float by = Ground + (1 - JailA()) * U(62);
         float ox = JailX;
         Shadow(g, ox + U(60), U(124));
         Panel(g, Color.FromArgb(128, 132, 142), ox, by, 0, 0, 120, 54, 0.6f);
         RectangleF wr = R(ox, by, 0, 0, 120, 54);
-        GraphicsState cs = g.Save();
+        GState cs = g.Save();
         g.SetClip(wr);
         using (Pen p = new Pen(Color.FromArgb(40, 30, 30, 40), Math.Max(1, U(0.25f))))
             for (int row = 0; row < 14; row++)
@@ -383,7 +383,7 @@ partial class VapePet
         Panel(g, Color.FromArgb(235, 235, 240), ox, by, 90, 0, 3, 3, 0.4f);
     }
 
-    void DrawJailFront(Graphics g)
+    void DrawJailFront(G g)
     {
         float by = Ground + (1 - JailA()) * U(62);
         float ox = JailX + (barsShake > 0 ? (float)Math.Sin(tick * 2.5) * U(0.35f) : 0);
@@ -470,7 +470,7 @@ partial class VapePet
         s.Add(Do(delegate { driverInCar = false; if (rnd.Next(100) < 40) BigText("МИССИЯ ВЫПОЛНЕНА|+ уважение", 2, 110); }));
     }
 
-    void DrawCar(Graphics g)
+    void DrawCar(G g)
     {
         float x0 = carX, lw = Math.Max(1.4f, U(0.55f));
         Shadow(g, x0 + U(23), U(48));
@@ -490,7 +490,7 @@ partial class VapePet
             {
                 p.AddPolygon(body);
                 using (SolidBrush b = new SolidBrush(cc)) g.FillPath(b, p);
-                GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                 using (SolidBrush b = new SolidBrush(cd)) g.FillRectangle(b, x0 - U(1), Ground - U(6.2f), U(49), U(4));
                 using (SolidBrush b = new SolidBrush(cl)) { g.FillRectangle(b, x0, Ground - U(10.0f), U(42), U(0.8f)); g.FillRectangle(b, x0 + U(2), Ground - U(16.2f), U(31), U(0.7f)); }
                 CarArch(g, x0 + U(9), U(4.4f)); CarArch(g, x0 + U(37), U(4.4f));
@@ -900,7 +900,7 @@ partial class VapePet
         if (s.Count > 0) { egg = s; eggIdx = 0; }
     }
 
-    void DrawBigText(Graphics g)
+    void DrawBigText(G g)
     {
         if (bigText == null) return;
         float k = bigT < 12 ? bigT / 12f : (bigT > bigMax - 18 ? Math.Max(0, (bigMax - bigT) / 18f) : 1f);
@@ -938,7 +938,7 @@ partial class VapePet
         }
     }
 
-    void OutlinedText(Graphics g, string t, Font f, Color fill, Color outline, float cx, float cy, float scale)
+    void OutlinedText(G g, string t, Font f, Color fill, Color outline, float cx, float cy, float scale)
     {
         using (GraphicsPath p = new GraphicsPath())
         using (StringFormat sf = new StringFormat())
@@ -1001,7 +1001,7 @@ partial class VapePet
         }
     }
 
-    void DrawPickups(Graphics g)
+    void DrawPickups(G g)
     {
         foreach (float[] p in pickups)
         {
@@ -1034,7 +1034,7 @@ partial class VapePet
         }
     }
 
-    void DrawHud(Graphics g)
+    void DrawHud(G g)
     {
         try { DrawPanel(g); } catch (Exception ex) { GuardLog("панель", ex); }
     }
@@ -1170,7 +1170,7 @@ partial class VapePet
         s.Add(LeaveShop(f));
     }
 
-    void DrawCape(Graphics g, Cat c)
+    void DrawCape(G g, Cat c)
     {
         float sw = (float)Math.Sin((tick + c.Id * 13) * 0.15) * 0.8f + (c.Walking ? 1.2f : 0);
         using (GraphicsPath p = new GraphicsPath())
@@ -1184,7 +1184,7 @@ partial class VapePet
         }
     }
 
-    void DrawCostumeTorso(Graphics g, Cat c, int o, Color c1, Color c2, Pen op)
+    void DrawCostumeTorso(G g, Cat c, int o, Color c1, Color c2, Pen op)
     {
         Func<float, float, float, float, GraphicsPath> body = delegate (float x, float y, float w, float h) { return RoundRect(x, y, w, h, 3.0f); };
         if (o == 14) // клетчатая накидка сыщика
@@ -1194,7 +1194,7 @@ partial class VapePet
             {
                 p.AddPolygon(new PointF[] { P(-4.4f, -13.4f), P(4.6f, -13.4f), P(5.6f, -8.4f), P(-5.4f, -8.4f) });
                 using (LinearGradientBrush b = new LinearGradientBrush(new RectangleF(-5.5f, -13.5f, 11.2f, 5.2f), Light(c1, 0.1f), Dark(c1, 0.82f), 90f)) g.FillPath(b, p);
-                GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                 using (Pen cp = new Pen(Color.FromArgb(90, 80, 50, 30), 0.25f))
                 {
                     for (int i = 0; i < 9; i++) g.DrawLine(cp, -5.4f + i * 1.3f, -13.4f, -5.4f + i * 1.3f, -8.4f);
@@ -1220,7 +1220,7 @@ partial class VapePet
             using (GraphicsPath p = body(-4.1f, -12.9f, 8.2f, 8.3f))
             {
                 using (SolidBrush b = new SolidBrush(c1)) g.FillPath(b, p);
-                GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                 using (SolidBrush b = new SolidBrush(Color.FromArgb(40, 60, 140))) for (int i = 0; i < 6; i++) g.FillRectangle(b, -4.2f, -12.4f + i * 1.45f, 8.4f, 0.65f);
                 g.Restore(cs);
                 g.DrawPath(op, p);
@@ -1320,7 +1320,7 @@ partial class VapePet
                 p.AddPolygon(new PointF[] { P(-3.8f, -13.0f), P(3.9f, -13.0f), P(4.6f, -8.0f), P(5.6f, -0.8f), P(-5.2f, -0.8f), P(-4.5f, -8.0f) });
                 using (LinearGradientBrush b = new LinearGradientBrush(new RectangleF(-5.3f, -13.1f, 11f, 12.5f), Dark(c1, 0.75f), Light(c1, 0.15f), 0f)) g.FillPath(b, p);
                 g.DrawPath(op, p);
-                GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                 using (SolidBrush b = new SolidBrush(Color.FromArgb(250, 220, 90)))
                     for (int i = 0; i < 8; i++) { float x = -4.2f + (i * 37 % 90) / 10f, y = -12.2f + (i * 53 % 105) / 10f; g.FillEllipse(b, x, y, 0.6f, 0.6f); }
                 g.Restore(cs);
@@ -1328,7 +1328,7 @@ partial class VapePet
         }
     }
 
-    void DrawCostumeHat(Graphics g, Cat c)
+    void DrawCostumeHat(G g, Cat c)
     {
         Color hc = c.HatC;
         switch (c.Hat)
@@ -1338,7 +1338,7 @@ partial class VapePet
                 {
                     p.AddArc(-4.0f, -24.6f, 10.0f, 7.0f, 180, 180); p.CloseFigure();
                     using (SolidBrush b = new SolidBrush(hc)) g.FillPath(b, p);
-                    GraphicsState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
+                    GState cs = g.Save(); g.SetClip(p, CombineMode.Intersect);
                     using (Pen cp = new Pen(Color.FromArgb(90, 70, 50, 30), 0.25f)) { for (int i = 0; i < 8; i++) g.DrawLine(cp, -4 + i * 1.4f, -25, -4 + i * 1.4f, -21); for (int i = 0; i < 4; i++) g.DrawLine(cp, -4, -24.4f + i * 1.0f, 6, -24.4f + i * 1.0f); }
                     g.Restore(cs);
                     using (Pen pp = new Pen(Dark(hc, 0.5f), 0.3f)) g.DrawPath(pp, p);

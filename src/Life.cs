@@ -631,7 +631,7 @@ partial class VapePet
         if (chasing && chaseT > 30 * 90) EndChase();   // страховка
     }
 
-    public void ChaseDraw(Graphics g)
+    public void ChaseDraw(G g)
     {
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -656,7 +656,7 @@ partial class VapePet
                 {
                     for (int k = -1; k <= 1; k++)
                     {
-                        GraphicsState s = g.Save();
+                        GState s = g.Save();
                         g.TranslateTransform(px, fy - U(0.6f)); g.RotateTransform(k * 38);
                         using (GraphicsPath gp = new GraphicsPath()) { gp.AddEllipse(-U(0.9f), -U(4.2f), U(1.8f), U(4.4f)); g.FillPath(b, gp); g.DrawPath(pen, gp); }
                         g.Restore(s);
@@ -698,7 +698,7 @@ partial class VapePet
             if (a == null) continue;
             float ax = a.x - ChaseLeft;
             if (ax < -U(60) || ax > ChaseW + U(60)) continue;
-            GraphicsState st = g.Save(); int g0 = Ground;
+            GState st = g.Save(); int g0 = Ground;
             try
             {
                 g.TranslateTransform(ax, fy - a.y);
@@ -740,9 +740,9 @@ partial class VapePet
     // ---- универсальное прозрачное окно поверх всего
     class LayerWin : Form
     {
-        VapePet p; Bitmap bmp; Func<Size> size; Func<Point> pos; Action<Graphics> draw;
+        VapePet p; Bitmap bmp; Func<Size> size; Func<Point> pos; Action<G> draw;
         IntPtr dc = IntPtr.Zero, dib = IntPtr.Zero, old = IntPtr.Zero, bits = IntPtr.Zero; int dw, dh;
-        public LayerWin(VapePet owner, Func<Size> sz, Func<Point> ps, Action<Graphics> dr)
+        public LayerWin(VapePet owner, Func<Size> sz, Func<Point> ps, Action<G> dr)
         {
             p = owner; size = sz; pos = ps; draw = dr;
             FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false; TopMost = true; StartPosition = FormStartPosition.Manual;
@@ -766,7 +766,7 @@ partial class VapePet
         {
             Size s = size(); int w = Math.Max(1, s.Width), h = Math.Max(1, s.Height);
             if (bmp == null || bmp.Width != w || bmp.Height != h) { if (bmp != null) bmp.Dispose(); bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb); }
-            using (Graphics g = Graphics.FromImage(bmp)) { g.Clear(Color.Transparent); draw(g); }
+            using (G g = G.On(bmp)) { g.Clear(Color.Transparent); draw(g); }
             if (dib == IntPtr.Zero || dw != w || dh != h)
             {
                 FreeDib();

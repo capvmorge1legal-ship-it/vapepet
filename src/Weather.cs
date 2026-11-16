@@ -63,6 +63,7 @@ partial class VapePet
                 if (k == "notes") dodgeNotes = val != "0";
                 if (k == "clip") clipOn = val != "0";
                 if (k == "smartclip") smartClip = val != "0";
+                if (k == "skia") G.UseSkia = val != "0";
                 if (k == "bigseen") bigSeen = val == "1";
                 if (k == "ms_token") { msToken = Unseal(val.Trim()); if (val.Length > 0 && !val.StartsWith("dpapi:")) keysPlain = true; }
                 if (k == "panel") panelShow = val != "0";
@@ -100,7 +101,7 @@ partial class VapePet
                 "lat=" + wxLat.ToString(CultureInfo.InvariantCulture), "lon=" + wxLon.ToString(CultureInfo.InvariantCulture),
                 "weather=" + (wxShow ? "1" : "0"), "roam=" + (interfacePlay ? "1" : "0"), "party=" + partyDay, "fright=" + frightLevel, "dl=" + (dlWatch ? "1" : "0"), "notes=" + (dodgeNotes ? "1" : "0"), "money=" + money, "ai_format=" + aiFormat, "ai_url=" + aiUrl, "ai_model=" + aiModel, "ai_key=" + Seal(aiKey), "ai_voice=" + (aiVoice ? "1" : "0"), "voice_clone=" + (cloneVoice ? "1" : "0"), "voice_dir=" + voiceDir
             });
-            sl.Add("panel=" + (panelShow ? "1" : "0")); sl.Add("clip=" + (clipOn ? "1" : "0")); sl.Add("smartclip=" + (smartClip ? "1" : "0")); sl.Add("bigseen=" + (bigSeen ? "1" : "0")); sl.Add("ms_token=" + Seal(msToken)); sl.Add("net=" + (netWatch ? "1" : "0")); sl.Add("netspeed=" + (netShowSpeed ? "1" : "0"));
+            sl.Add("panel=" + (panelShow ? "1" : "0")); sl.Add("clip=" + (clipOn ? "1" : "0")); sl.Add("smartclip=" + (smartClip ? "1" : "0")); sl.Add("skia=" + (G.UseSkia ? "1" : "0")); sl.Add("bigseen=" + (bigSeen ? "1" : "0")); sl.Add("ms_token=" + Seal(msToken)); sl.Add("net=" + (netWatch ? "1" : "0")); sl.Add("netspeed=" + (netShowSpeed ? "1" : "0"));
             sl.Add("autoupd=" + (autoUpdate ? "1" : "0")); sl.Add("hidefs=" + (hideInFullscreen ? "1" : "0")); sl.Add("monitor=" + petMonitor); sl.Add("corner=" + (petLeft ? "left" : "right")); sl.Add("ver=" + AppVersion);
             sl.Add("links=1");
             foreach (string[] l in links) sl.Add("link=" + l[0].Replace("|", "/") + "|" + l[1]);
@@ -356,7 +357,7 @@ partial class VapePet
     }
 
     // ---- рисование погоды ----
-    void DrawCloud(Graphics g, float x, float y, float s, int alpha, bool dark)
+    void DrawCloud(G g, float x, float y, float s, int alpha, bool dark)
     {
         Color c = dark ? Color.FromArgb(alpha, 150, 156, 170) : Color.FromArgb(alpha, 250, 252, 255);
         using (SolidBrush b = new SolidBrush(c))
@@ -367,7 +368,7 @@ partial class VapePet
         }
     }
 
-    void DrawWeatherBack(Graphics g)
+    void DrawWeatherBack(G g)
     {
         if (!WxActive) return;
         bool dark = wxCode >= 3 && (wxCode == 3 || IsRain || IsSnow);
@@ -375,7 +376,7 @@ partial class VapePet
         foreach (float[] c in clouds) DrawCloud(g, c[0], c[1], c[2], alpha, dark);
     }
 
-    void DrawWeatherGround(Graphics g)
+    void DrawWeatherGround(G g)
     {
         if (!WxActive) return;
         int month = DateTime.Now.Month;
@@ -406,7 +407,7 @@ partial class VapePet
         }
     }
 
-    void DrawWeatherFront(Graphics g)
+    void DrawWeatherFront(G g)
     {
         if (!WxActive) return;
         foreach (Particle p in parts)
@@ -473,7 +474,7 @@ partial class VapePet
         return buf2;
     }
 
-    void Glow(Graphics g, float cx, float cy, float rx, float ry, Color c, int alpha)
+    void Glow(G g, float cx, float cy, float rx, float ry, Color c, int alpha)
     {
         if (alpha <= 0) return;
         using (GraphicsPath p = new GraphicsPath())
@@ -488,7 +489,7 @@ partial class VapePet
         }
     }
 
-    void DrawStreetLamp(Graphics g, float x, float n)
+    void DrawStreetLamp(G g, float x, float n)
     {
         using (Pen p = new Pen(Color.FromArgb(60, 64, 74), Math.Max(1, U(0.9f)))) { g.DrawLine(p, x, Ground, x, Ground - U(38)); g.DrawArc(p, x, Ground - U(40), U(6), U(4), 180, 180); }
         using (GraphicsPath p = RoundRect(x + U(4.4f), Ground - U(38.8f), U(3.4f), U(1.6f), U(0.5f))) using (SolidBrush b = new SolidBrush(Color.FromArgb(70, 74, 84))) g.FillPath(b, p);
@@ -506,7 +507,7 @@ partial class VapePet
         }
     }
 
-    void DrawNightLights(Graphics g, float n)
+    void DrawNightLights(G g, float n)
     {
         int a = (int)(170 * n);
         Color warm = Color.FromArgb(255, 220, 140);
@@ -539,7 +540,7 @@ partial class VapePet
             if (!c.Hidden && c.Vape && c.PuffT > 55) { PointF t = Local(c, 7.6f, -14.9f); Glow(g, t.X, t.Y, U(3), U(3), Color.FromArgb(120, 255, 255), 200); }
     }
 
-    void DrawWxIcon(Graphics g, float cx, float cy, float s)
+    void DrawWxIcon(G g, float cx, float cy, float s)
     {
         bool night = !wxIconDay && NightK() > 0.5f;
         int c = wxCode;
@@ -589,7 +590,7 @@ partial class VapePet
         return new RectangleF(HudX(w), W(1.5f), w, h);
     }
 
-    void DrawWeatherWidget(Graphics g)
+    void DrawWeatherWidget(G g)
     {
         if (!WxVisible) return;
         RectangleF r = WidgetRect();
@@ -628,7 +629,7 @@ partial class VapePet
     }
 
     // ---- одежда по погоде ----
-    void DrawScarf(Graphics g, Cat c)
+    void DrawScarf(G g, Cat c)
     {
         Color[] sc = { Color.FromArgb(220, 60, 70), Color.FromArgb(60, 120, 220), Color.FromArgb(250, 190, 60), Color.FromArgb(70, 170, 110), Color.FromArgb(170, 100, 220) };
         Color col = sc[Math.Abs(c.Id) % sc.Length];
@@ -643,7 +644,7 @@ partial class VapePet
         using (Pen pp = new Pen(Color.FromArgb(160, 255, 255, 255), 0.3f)) { g.DrawLine(pp, 2.4f + sw * 0.7f, -10.6f, 3.6f + sw * 0.8f, -10.6f); g.DrawLine(pp, -2.6f, -13.3f, -1.6f, -13.3f); g.DrawLine(pp, 0.2f, -13.3f, 1.2f, -13.3f); }
     }
 
-    void DrawUmbrella(Graphics g, Cat c)
+    void DrawUmbrella(G g, Cat c)
     {
         Color[] uc = { Color.FromArgb(230, 60, 80), Color.FromArgb(60, 130, 230), Color.FromArgb(250, 200, 60), Color.FromArgb(40, 40, 50), Color.FromArgb(150, 90, 220) };
         Color col = uc[Math.Abs(c.Id + 2) % uc.Length];
