@@ -199,7 +199,7 @@ public sealed class G : IDisposable
             using (SKImage si = SKImage.FromPixelCopy(new SKImageInfo(b.Width, b.Height, SKColorType.Bgra8888, SKAlphaType.Premul), bd.Scan0, bd.Stride))
             {
                 SKSamplingOptions so = interp == InterpolationMode.NearestNeighbor ? new SKSamplingOptions(SKFilterMode.Nearest) :
-                                        (interp == InterpolationMode.HighQualityBicubic || interp == InterpolationMode.HighQualityBilinear || interp == InterpolationMode.HighQuality) ? new SKSamplingOptions(SKCubicResampler.Mitchell) :
+                                        (interp == InterpolationMode.HighQualityBicubic || interp == InterpolationMode.HighQualityBilinear || interp == InterpolationMode.High) ? new SKSamplingOptions(SKCubicResampler.Mitchell) :
                                         new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None);
                 using (SKPaint p = paint ?? new SKPaint()) { if (comp == CompositingMode.SourceCopy) p.BlendMode = SKBlendMode.Src; c.DrawImage(si, src, dst, so, p); }
             }
