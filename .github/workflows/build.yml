@@ -1,0 +1,28 @@
+name: build
+# Проверочная сборка для веток (не main): собирает VapePet.exe и кладёт в артефакты, релиз не делает.
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build
+        shell: powershell
+        run: |
+          dotnet publish VapePet.csproj -c Release -o dist --nologo
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Copy-Item installer\* dist -Force
+          Get-ChildItem dist | Format-Table Name, Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VapePet
+          path: |
+            dist/VapePet.exe
+            dist/install.ps1
+            dist/*.cmd

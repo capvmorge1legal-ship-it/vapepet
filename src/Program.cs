@@ -16,6 +16,15 @@ using System.Windows.Forms;
 // точка входа для VapePet.exe (при запуске из PowerShell не используется)
 static class VapePetProgram
 {
+    // открыть ссылку, папку или файл так, как это делает Проводник
+    public static void Shell(string target, string args = null)
+    {
+        System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(target);
+        if (args != null) psi.Arguments = args;
+        psi.UseShellExecute = true;
+        System.Diagnostics.Process.Start(psi);
+    }
+
     [STAThread]
     static void Main() { VapePet.Start(); }
 }

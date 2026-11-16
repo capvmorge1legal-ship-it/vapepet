@@ -103,6 +103,8 @@ public partial class VapePet : Form
         try { return "dpapi:" + Convert.ToBase64String(System.Security.Cryptography.ProtectedData.Protect(Encoding.UTF8.GetBytes(v), Encoding.ASCII.GetBytes("VapePet"), System.Security.Cryptography.DataProtectionScope.CurrentUser)); }
         catch { return v; }
     }
+    static void ShellOpen(string target) { VapePetProgram.Shell(target); }
+
     static string Unseal(string v)
     {
         if (v == null || !v.StartsWith("dpapi:")) return v ?? "";

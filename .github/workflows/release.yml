@@ -4,7 +4,7 @@ name: release
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'build/**', 'installer/**', '.github/workflows/**']
+    paths: ['src/**', 'build/**', 'installer/**', 'VapePet.csproj', '.github/workflows/**']
   workflow_dispatch:
 permissions:
   contents: write
@@ -25,6 +25,10 @@ jobs:
           "exists=$exists" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-dotnet@v4
+        if: steps.ver.outputs.exists != 'True'
+        with:
+          dotnet-version: '10.0.x'
       - name: Build VapePet.exe
         if: steps.ver.outputs.exists != 'True'
         shell: powershell

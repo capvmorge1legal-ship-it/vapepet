@@ -754,7 +754,7 @@ partial class VapePet
     {
         try
         {
-            if (target.StartsWith("http", StringComparison.OrdinalIgnoreCase) || File.Exists(target) || Directory.Exists(target)) System.Diagnostics.Process.Start(target);
+            if (target.StartsWith("http", StringComparison.OrdinalIgnoreCase) || File.Exists(target) || Directory.Exists(target)) ShellOpen(target);
             else { Say("Не нашёл: " + target, me.X, CatTop(me) - U(1), 'R'); return; }
             Say("Открываю: " + name, me.X, CatTop(me) - U(1), 'U');
         }
@@ -1006,9 +1006,9 @@ partial class VapePet
 
     void OpenVpnApp()
     {
-        try { if (vpnAppPath != null && File.Exists(vpnAppPath)) { System.Diagnostics.Process.Start(vpnAppPath); return; } } catch { }
+        try { if (vpnAppPath != null && File.Exists(vpnAppPath)) { ShellOpen(vpnAppPath); return; } } catch { }
         string h = @"C:\Program Files\FlyFrogLLC\Happ\Happ.exe";
-        try { if (File.Exists(h)) System.Diagnostics.Process.Start(h); else VpnCheck(true); } catch { }
+        try { if (File.Exists(h)) ShellOpen(h); else VpnCheck(true); } catch { }
     }
 
     void PanelTick()

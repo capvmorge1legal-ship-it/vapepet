@@ -533,7 +533,9 @@ partial class VapePet
         using (Mutex m = new Mutex(true, "VapePet_SingleInstance", out created))
         {
             if (!created) return;
-            try { SetProcessDPIAware(); } catch { }
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);      // windows-1251 для ЦБ
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.SetDefaultFont(new Font(new FontFamily("Microsoft Sans Serif"), 8.25f));   // как было в .NET Framework — окна не «поедут»
             float dpi = 96;
             using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) dpi = g.DpiX;
             Application.EnableVisualStyles();

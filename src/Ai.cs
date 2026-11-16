@@ -468,7 +468,7 @@ partial class VapePet
         {
             if (synth == null)
             {
-                System.Reflection.Assembly asm = System.Reflection.Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
+                System.Reflection.Assembly asm = System.Reflection.Assembly.Load("System.Speech");
                 synthType = asm.GetType("System.Speech.Synthesis.SpeechSynthesizer");
                 synth = Activator.CreateInstance(synthType);
                 synthType.GetMethod("SetOutputToDefaultAudioDevice").Invoke(synth, null);
