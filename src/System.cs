@@ -65,7 +65,7 @@ partial class VapePet
     }
 
     // ================= обновления с GitHub =================
-    public const string AppVersion = "3.1.0";
+    public const string AppVersion = "3.1.1";
     const string UpdateRepo = "capvmorge1legal-ship-it/vapepet";
     bool autoUpdate = true, updBusy, updSaid; string savedVer = "";
     const int UpdEvery = 30 * 60 * 60 * 6;      // раз в 6 часов (30 кадров в секунду)

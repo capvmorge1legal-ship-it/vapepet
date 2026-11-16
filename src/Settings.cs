@@ -297,7 +297,7 @@ partial class VapePet
             int x0 = SideW + S(28);
             g.SetClip(new Rectangle(SideW + 1, 0, ClientSize.Width - SideW - 1, ClientSize.Height));
             g.TranslateTransform(0, -scroll);
-            TextRenderer.DrawText(g, tabs[cur].Name, fTitle, new Point(x0 - S(2), S(20)), TextC, TextFormatFlags.NoPrefix);
+            TextRenderer.DrawText(g, tabs[cur].Name, fTitle, new Point(x0 - S(2), S(20)), TextC, TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping);
             List<SRow> rows = tabs[cur].Rows;
             for (int i = 0; i < rows.Count; i++) DrawRow(g, rows[i], i == hoverRow);
             g.ResetTransform(); g.ResetClip();
@@ -308,12 +308,12 @@ partial class VapePet
             Rectangle R = r.R;
             if (r.Kind == 0)
             {
-                TextRenderer.DrawText(g, r.Text.ToUpperInvariant(), fHead, new Rectangle(R.X + S(4), R.Y + S(10), R.Width, R.Height - S(10)), DimC, TextFormatFlags.Left | TextFormatFlags.NoPrefix);
+                TextRenderer.DrawText(g, r.Text.ToUpperInvariant(), fHead, new Rectangle(R.X + S(4), R.Y + S(10), R.Width, R.Height - S(10)), DimC, TextFormatFlags.Left | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping);
                 return;
             }
             if (r.Kind == 4)
             {
-                TextRenderer.DrawText(g, r.Text, fSmall, new Rectangle(R.X + S(4), R.Y, R.Width - S(8), R.Height), DimC, TextFormatFlags.Left | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix);
+                TextRenderer.DrawText(g, r.Text, fSmall, new Rectangle(R.X + S(4), R.Y, R.Width - S(8), R.Height), DimC, TextFormatFlags.Left | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping);
                 return;
             }
             using (GraphicsPath gp = RoundRect(R.X, R.Y, R.Width, R.Height, S(10)))
@@ -330,7 +330,7 @@ partial class VapePet
             }
             if (r.Kind == 2)
             {
-                TextRenderer.DrawText(g, r.Text, fText, new Rectangle(ix, R.Y + S(6), R.Width - S(40), S(28)), TextC, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                TextRenderer.DrawText(g, r.Text, fText, new Rectangle(ix, R.Y + S(6), R.Width - S(40), S(28)), TextC, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping);
                 for (int k = 0; k < r.Choices.Count; k++)
                 {
                     Rectangle c = r.ChoiceR[k]; bool on = r.Choices[k].Checked, h = hot && k == hoverChoice;
@@ -338,12 +338,12 @@ partial class VapePet
                     {
                         using (SolidBrush b = new SolidBrush(on ? MenuAc : h ? Color.FromArgb(62, 68, 90) : Color.FromArgb(48, 53, 70))) g.FillPath(b, gp);
                     }
-                    TextRenderer.DrawText(g, Clean(r.Choices[k].Text), fText, c, on ? Color.FromArgb(40, 24, 10) : TextC, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                    TextRenderer.DrawText(g, Clean(r.Choices[k].Text), fText, c, on ? Color.FromArgb(40, 24, 10) : TextC, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping);
                 }
                 return;
             }
             Color tc = r.Item != null && !r.Item.Enabled ? DimC : TextC;
-            TextRenderer.DrawText(g, r.Text, fText, new Rectangle(ix, R.Y, R.Right - ix - S(80), R.Height), tc, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
+            TextRenderer.DrawText(g, r.Text, fText, new Rectangle(ix, R.Y, R.Right - ix - S(80), R.Height), tc, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsTranslateTransform | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.EndEllipsis);
             if (r.Kind == 1)
             {
                 bool on = r.Item.Checked;
