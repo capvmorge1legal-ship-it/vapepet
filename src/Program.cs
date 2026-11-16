@@ -26,5 +26,9 @@ static class VapePetProgram
     }
 
     [STAThread]
-    static void Main() { VapePet.Start(); }
+    static void Main(string[] args)
+    {
+        if (args.Length >= 2 && args[0] == "--render-test") { VapePet.RenderTest(args[1]); return; }
+        VapePet.Start();
+    }
 }

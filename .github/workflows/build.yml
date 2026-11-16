@@ -21,6 +21,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit 1 }
           Copy-Item installer\* dist -Force
           Get-ChildItem dist | Format-Table Name, Length
+      - name: Render test (кадры GDI+ и Skia)
+        shell: powershell
+        run: |
+          $p = Start-Process dist\VapePet.exe -ArgumentList '--render-test', "$pwd\frames" -PassThru -Wait
+          Get-Content frames\log.txt
+          Compress-Archive -Path frames\* -DestinationPath frames.zip
       - uses: actions/upload-artifact@v4
         with:
           name: VapePet
@@ -35,4 +41,6 @@ jobs:
           name: Тестовая сборка ${{ github.ref_name }}
           prerelease: true
           target_commitish: ${{ github.sha }}
-          files: dist/VapePet.exe
+          files: |
+            dist/VapePet.exe
+            frames.zip
