@@ -461,12 +461,33 @@ partial class VapePet
     }
 }
 
-// музыка для сценки: свой файл рядом с котиком — music\bar.mp3 (в репозиторий не кладём)
+// музыка для сценки: свой файл рядом с котиком — music\bar.mp3 (в репозиторий не кладём).
+// Играем через NAudio (MP3 декодирует кодек Windows), по кругу, пока открыт бар.
 partial class VapePet
 {
-    [System.Runtime.InteropServices.DllImport("winmm.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-    static extern int mciSendString(string cmd, System.Text.StringBuilder ret, int retLen, IntPtr cb);
+    NAudio.Wave.WaveOutEvent barOut; NAudio.Wave.WaveStream barRd;
     bool barMusicOn;
+
+    sealed class LoopStream : NAudio.Wave.WaveStream
+    {
+        readonly NAudio.Wave.WaveStream src;
+        public LoopStream(NAudio.Wave.WaveStream s) { src = s; }
+        public override NAudio.Wave.WaveFormat WaveFormat { get { return src.WaveFormat; } }
+        public override long Length { get { return src.Length; } }
+        public override long Position { get { return src.Position; } set { src.Position = value; } }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int total = 0;
+            while (total < count)
+            {
+                int n = src.Read(buffer, offset + total, count - total);
+                if (n == 0) { if (src.Position == 0) break; src.Position = 0; continue; }
+                total += n;
+            }
+            return total;
+        }
+        protected override void Dispose(bool disposing) { if (disposing) src.Dispose(); base.Dispose(disposing); }
+    }
 
     static string BarMusicFile()
     {
@@ -475,8 +496,10 @@ partial class VapePet
             try
             {
                 string md = System.IO.Path.Combine(dir ?? "", "music");
+                if (!System.IO.Directory.Exists(md)) continue;
                 string f = System.IO.Path.Combine(md, "bar.mp3");
                 if (System.IO.File.Exists(f)) return f;
+                foreach (string any in System.IO.Directory.GetFiles(md, "*.mp3")) return any;
             }
             catch { }
         }
@@ -490,19 +513,25 @@ partial class VapePet
             if (on && !barMusicOn)
             {
                 string f = BarMusicFile(); if (f == null) return;
-                mciSendString("close vpbar", null, 0, IntPtr.Zero);
-                if (mciSendString("open \"" + f + "\" type mpegvideo alias vpbar", null, 0, IntPtr.Zero) != 0) return;
-                mciSendString("setaudio vpbar volume to 550", null, 0, IntPtr.Zero);
-                mciSendString("play vpbar repeat", null, 0, IntPtr.Zero);
+                NAudio.Wave.WaveStream rd;
+                try { rd = new NAudio.Wave.Mp3FileReader(f); }
+                catch { rd = new NAudio.Wave.MediaFoundationReader(f); }
+                barRd = new LoopStream(rd);
+                barOut = new NAudio.Wave.WaveOutEvent();
+                barOut.Init(barRd);
+                barOut.Volume = 0.6f;
+                barOut.Play();
                 barMusicOn = true;
             }
             else if (!on && barMusicOn)
             {
-                mciSendString("stop vpbar", null, 0, IntPtr.Zero);
-                mciSendString("close vpbar", null, 0, IntPtr.Zero);
                 barMusicOn = false;
+                try { barOut.Stop(); } catch { }
+                try { barOut.Dispose(); } catch { }
+                try { barRd.Dispose(); } catch { }
+                barOut = null; barRd = null;
             }
         }
-        catch (Exception ex) { GuardLog("музыка бара", ex); }
+        catch (Exception ex) { GuardLog("музыка бара", ex); barMusicOn = false; }
     }
 }
