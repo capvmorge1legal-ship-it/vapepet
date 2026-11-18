@@ -370,7 +370,7 @@ partial class VapePet
             using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(255 * k), 60, 40, 24)))
             {
                 sf.Alignment = StringAlignment.Center;
-                g.DrawString("CLAUDE: «" + memCaption + "»", fnt, b, r.X + r.Width / 2, r.Y + U(2), sf);
+                g.DrawString("CLAUDE: «" + memCaption + "»", fntTiny ?? fnt, b, new RectangleF(r.X + U(6), r.Y + U(1.5f), r.Width - U(12), U(12)), sf);
             }
         }
     }
@@ -410,14 +410,20 @@ partial class VapePet
         float kin = Math.Min(1f, t / 90f), kout = Math.Min(1f, (VaporDur - t) / 90f), k = Math.Max(0, Math.Min(kin, kout));
         float cx = A + U(100), cy = Math.Max(U(26), Ground - U(64));
         Random rr = new Random(42);
-        for (int i = 0; i < 46; i++)
+        // мягкие клубы пара: каждый — прозрачный по краям, медленно плывёт и растёт
+        for (int i = 0; i < 60; i++)
         {
-            float ox = (float)(rr.NextDouble() - 0.5) * U(170), oy = (float)(rr.NextDouble() - 0.5) * U(34);
-            float rad = U(8 + (float)rr.NextDouble() * 12);
-            float drift = (float)Math.Sin(t * 0.02f + i) * U(2);
-            float appear = Math.Min(1f, Math.Max(0, (t - i * 1.2f) / 50f));
-            int al = (int)(70 * k * appear);
-            using (SolidBrush b = new SolidBrush(Color.FromArgb(al, 236, 238, 244))) g.FillEllipse(b, cx + ox + drift - rad, cy + oy - rad * 0.7f, rad * 2, rad * 1.4f);
+            float ox = (float)(rr.NextDouble() - 0.5) * U(180), oy = (float)(rr.NextDouble() - 0.5) * U(30);
+            float rad = U(9 + (float)rr.NextDouble() * 10) * (0.8f + 0.25f * Math.Min(1f, t / 300f));
+            float drift = (float)Math.Sin(t * 0.015f + i * 1.7f) * U(3), rise = -Math.Min(1f, t / 400f) * U(3);
+            float appear = Math.Min(1f, Math.Max(0, (t - i * 1.0f) / 60f));
+            int al = (int)(95 * k * appear);
+            if (al <= 0) continue;
+            using (GraphicsPath gp = new GraphicsPath())
+            {
+                gp.AddEllipse(cx + ox + drift - rad, cy + oy + rise - rad * 0.65f, rad * 2, rad * 1.3f);
+                using (PathGradientBrush pb = new PathGradientBrush(gp)) { pb.CenterColor = Color.FromArgb(al, 238, 240, 246); pb.SurroundColors = new Color[] { Color.FromArgb(0, 238, 240, 246) }; g.FillPath(pb, gp); }
+            }
         }
         float tk = Math.Max(0, Math.Min(1f, (t - 110) / 70f)) * kout;
         if (tk <= 0) return;
@@ -432,8 +438,9 @@ partial class VapePet
         {
             sf.Alignment = StringAlignment.Center; sf.LineAlignment = StringAlignment.Center;
             p.AddString(text, f.FontFamily, (int)f.Style, f.Size * scale, new PointF(cx, cy), sf);
+            using (Matrix sh = new Matrix()) { sh.Translate(U(0.5f), U(0.7f)); using (GraphicsPath sp = (GraphicsPath)p.Clone()) { sp.Transform(sh); using (Pen sd = new Pen(Color.FromArgb((int)(90 * k), 20, 16, 20), f.Size * scale * 0.12f)) { sd.LineJoin = LineJoin.Round; g.DrawPath(sd, sp); } } }
             for (int i = 4; i >= 1; i--)
-                using (Pen glow = new Pen(Color.FromArgb((int)(28 * k), 255, 255, 255), f.Size * scale * 0.09f * i)) { glow.LineJoin = LineJoin.Round; g.DrawPath(glow, p); }
+                using (Pen glow = new Pen(Color.FromArgb((int)(26 * k), 255, 255, 255), f.Size * scale * 0.09f * i)) { glow.LineJoin = LineJoin.Round; g.DrawPath(glow, p); }
             using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(235 * k), 252, 252, 255))) g.FillPath(b, p);
         }
     }

@@ -149,7 +149,7 @@ partial class VapePet
             hudBuf = new Bitmap(Width, Height, PixelFormat.Format32bppPArgb);
             hudDirty = true;
         }
-        bool hudOn = !HudUnderNote() && !bigOpen;
+        bool hudOn = !HudUnderNote() && !bigOpen && mode != 7;   // в баре панель не мешает воспоминаниям
         if (hudOn != hudWasOn) { hudWasOn = hudOn; hudDirty = true; }
         if (hudDirty || ++hudAge >= 15) RebuildHud(hudOn);
         using (Graphics g = Graphics.FromImage(hudBuf))
