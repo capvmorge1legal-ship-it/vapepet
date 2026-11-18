@@ -215,7 +215,8 @@ partial class VapePet
         g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
         if (shakeT > 0) g.TranslateTransform((float)(rnd.NextDouble() - 0.5) * U(1.4f), (float)(rnd.NextDouble() - 0.5) * U(0.8f));
 
-        DrawWeatherBack(g);
+        if (mode != 7) DrawWeatherBack(g);
+        if (mode == 7) { DrawBarBack(g); DrawBarSeats(g); }
         if (mode == 1 || mode == 6) DrawShop(g);
         if (mode == 2) DrawChill(g);
         if (mode == 3) DrawTidy(g);
@@ -228,7 +229,7 @@ partial class VapePet
             DrawPoolFront(g);
         }
 
-        DrawWeatherGround(g);
+        if (mode != 7) DrawWeatherGround(g);
         DrawPickups(g);
         List<Cat> zl = new List<Cat>();
         foreach (Cat c in guests) if (!c.Swimming) zl.Add(c);
@@ -269,6 +270,11 @@ partial class VapePet
             else if (p.Kind == 2 && k > 0.05f) DrawItem(g, 'M', p.Col, p.X, p.Y, (int)(255 * k));
             else if (p.Kind == 3 && k > 0.05f) DrawItem(g, 'H', p.Col, p.X, p.Y, (int)(255 * k));
             else if (p.Kind == 4 && k > 0.05f) DrawItem(g, 'S', 'Y', p.X, p.Y, (int)(255 * k), p.Life * 12);
+            else if (p.Kind == 10)
+            {
+                using (SolidBrush b = new SolidBrush(Color.FromArgb((int)(220 * k), 140, 200, 255)))
+                    g.FillEllipse(b, p.X - p.R * 0.7f, p.Y - p.R, p.R * 1.4f, p.R * 2f);
+            }
             else if (p.Kind == 5)
             {
                 int a5 = (int)(150 * k * Math.Min(1f, p.Life / 5f));
@@ -289,7 +295,8 @@ partial class VapePet
                 int qa = (int)(255 * Math.Max(0, 1 - p.Life / (float)p.Max));
                 OutlinedText(g, "?", fnt, Color.FromArgb(qa, 255, 200, 80), Color.FromArgb(qa, 40, 30, 20), p.X, p.Y, 1.1f);
             }
-        DrawWeatherFront(g);
+        if (mode != 7) DrawWeatherFront(g);
+        if (mode == 7) { DrawMemory(g); DrawVaporText(g); }
         DrawBigText(g);
         foreach (FText f in texts)
         {
@@ -1254,6 +1261,9 @@ partial class VapePet
                         for (int i = -3; i <= 3; i++) { float sw = (float)Math.Sin(tick * 0.3f + i) * 0.35f; g.DrawLine(mo, i * 0.45f, 6.6f, i * 0.62f + sw, 9.4f); }
                         for (int i = -3; i <= 3; i++) { float sw = (float)Math.Sin(tick * 0.3f + i) * 0.35f; g.DrawLine(mp, i * 0.45f, 6.6f, i * 0.62f + sw, 9.4f); }
                     }
+                    break;
+                case 'E': // стакан с напитком (бар)
+                    DrawGlass(g, alpha);
                     break;
                 case 'U': // кружка кофе
                     g.ScaleTransform(1.6f, 1.6f);

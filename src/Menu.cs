@@ -230,6 +230,7 @@ partial class VapePet
         Put(scenes, "Вечеринка у бассейна", "♨", Color.FromArgb(60, 180, 220), "Вечеринка у бассейна");
         Put(scenes, "Облава ОМОН", "⚠", Color.FromArgb(220, 70, 70), "Облава ОМОН");
         Put(scenes, "Ревизия от нач. кота", "☑", Color.FromArgb(150, 150, 170), "Ревизия от начальника");
+        Put(scenes, "Бар: помним CLAUDE", "♥", Color.FromArgb(200, 140, 80));
         scenes.DropDownItems.Add(MenuHeader("Отдых"));
         Put(scenes, "Послушать музыку", "♪", Color.FromArgb(230, 180, 60), "Музыка (Яндекс Музыка)");
         Put(scenes, "Смотреть кино", "▶", Color.FromArgb(220, 90, 110), "Кино (Кинопоиск)");

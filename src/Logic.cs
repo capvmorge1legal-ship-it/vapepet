@@ -48,7 +48,7 @@ partial class VapePet
 
     float SceneW(int m)
     {
-        switch (m) { case 1: return U(200); case 2: return U(100); case 3: return U(165); case 4: return U(222); case 5: return U(200); case 6: return U(200); }
+        switch (m) { case 1: return U(200); case 2: return U(100); case 3: return U(165); case 4: return U(222); case 5: return U(200); case 6: return U(200); case 7: return U(200); }
         return 0;
     }
 
@@ -74,6 +74,7 @@ partial class VapePet
         }
         if (m == 5) SetupRaid();
         if (m == 6) SetupRevision();
+        if (m == 7) { SetupBar(); BarMusic(true); } else BarMusic(false);
         if (m == 4) { doorOpen = 0; guestsSpawned = 0; loungerBusy = false; Say("Вечеринка!", A + U(55), Ground - U(76), 'L'); }
     }
 
@@ -98,6 +99,7 @@ partial class VapePet
                 case 4: UpdateParty(); break;
                 case 5: UpdateOmon(); break;
                 case 6: UpdateRevision(); break;
+                case 7: UpdateBar(); break;
             }
         }
 
@@ -129,6 +131,7 @@ partial class VapePet
             else if (p.Kind == 8) { p.Y += p.VY; if (rnd.Next(8) == 0) p.Col = "01ЖИЖАVAPE0110КОТ"[rnd.Next(17)]; }
             else if (p.Kind == 7) { p.X += p.VX + (float)Math.Sin((p.Life + p.R * 10) * 0.08f) * 0.12f * u; p.Y += p.VY; }
             else if (p.Kind == 4) { p.X += p.VX; p.Y += p.VY; p.VX *= 0.95f; p.VY *= 0.95f; }
+            else if (p.Kind == 10) { p.X += p.VX; p.Y += p.VY; p.VY += 0.035f * u; }
             else if (p.Kind == 2 || p.Kind == 3) { p.Y += p.VY; p.X += (float)Math.Sin(p.Life * 0.15f) * 0.2f * u; }
             if (p.Life > p.Max) parts.RemoveAt(i);
         }

@@ -21,13 +21,13 @@ partial class VapePet
             string tag = skia ? "skia" : "gdi";
             VapePet p = new VapePet(96);
             p.rnd = new Random(7);
-            foreach (int m in new int[] { 0, 1, 2, 3, 4, 5, 6 })
+            foreach (int m in new int[] { 0, 1, 2, 3, 4, 5, 6, 7 })
             {
                 try
                 {
                     p.SetMode(m);
                     int last = 0;
-                    foreach (int f in new int[] { 300, 1200 })
+                    foreach (int f in (m == 7 ? new int[] { 300, 600, 950, 1250, 1500, 1780, 1950 } : new int[] { 300, 1200 }))
                     {
                         for (; last < f; last++) p.Step();
                         using (Bitmap b = new Bitmap(p.Width, p.Height + 30, PixelFormat.Format32bppPArgb))

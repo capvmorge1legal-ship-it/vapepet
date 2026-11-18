@@ -38,7 +38,7 @@ public partial class VapePet : Form
         public Color IrisC = Color.FromArgb(120, 190, 80); public bool Stripes; public float ItemRot;
         public int Outfit, Hat; public Color C1 = Color.Gray, C2 = Color.DimGray, HatC = Color.Red; public bool HatBack, Glasses, Lying, Cuffed, Bald, Chain, SmallShades; public int DialogV = -1;
         public float Patience = 100, Temper = 1; public int ActT = 60, RageHits, LookT;
-        public float Scale = 1f; public int Shake, Script, AngryT, StompT, HappyT, SweatT;
+        public float Scale = 1f; public int Shake, Script, AngryT, StompT, HappyT, SweatT, CryT;
         public char Hold = ' ', HoldCol = 'R';
         public Color MainC, BellyC;
         public float JX0, JX1, JY0, JY1, JH; public int JT, JDur; public Action JDone;
@@ -302,6 +302,7 @@ public partial class VapePet : Form
         scMenu.DropDownItems.Add("Вечеринка у бассейна", Ico("\U0001F3CA", Color.FromArgb(80, 200, 240)), delegate { SetMode(4); });
         scMenu.DropDownItems.Add("Облава ОМОН", Ico("\U0001F6A8", Color.FromArgb(255, 90, 90)), delegate { SetMode(5); });
         scMenu.DropDownItems.Add("Ревизия от нач. кота", Ico("\U0001F4CB", Color.FromArgb(230, 230, 240)), delegate { SetMode(6); });
+        scMenu.DropDownItems.Add("Бар: помним CLAUDE", Ico("\U0001F56F", Color.FromArgb(240, 190, 110)), delegate { SetMode(7); });
         menu.Items.Add(scMenu);
         menu.Items.Add(new ToolStripSeparator());
 
